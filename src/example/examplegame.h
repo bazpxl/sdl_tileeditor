@@ -7,10 +7,7 @@
 
 class ExampleGame;
 class IntroState;
-class PlasmaState;
-class SortState;
-class CameraState;
-class ShooterState;
+
 
 class ExampleGame final : public Game
 {
