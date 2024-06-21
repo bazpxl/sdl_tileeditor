@@ -7,7 +7,7 @@
 
 class ExampleGame;
 class IntroState;
-
+using namespace BzlGame;
 
 class ExampleGame final : public Game
 {
