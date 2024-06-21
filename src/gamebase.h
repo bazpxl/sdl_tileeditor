@@ -2,6 +2,8 @@
 
 #include <global.h>
 
+using namespace BzlGame;
+
 class Game;
 class GameState;
 

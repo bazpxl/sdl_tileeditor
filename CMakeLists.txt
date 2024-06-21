@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 3.20 )
-project( sdl_basegame )
+project( sdl_tileeditor )
 
 set( CMAKE_C_STANDARD   17 )
 set( CMAKE_CXX_STANDARD 20 )
@@ -152,32 +152,27 @@ endif()
 
 add_compile_options( "$<$<CONFIG:DEBUG>:-DDEBUG>" )
 
-add_executable( sdl_basegame
+add_executable( sdl_tileeditor
         src/global.h
         src/gamebase.h
         src/gamebase.cpp
         src/recthelper.h
 
-        src/example/pongmain.cpp
-
         src/example/main.cpp
         src/example/examplegame.h
         src/example/examplegame.cpp
-        src/example/camerastate.cpp
         src/example/introstate.cpp
-        src/example/plasmastate.cpp
-        src/example/shooterstate.cpp
-        src/example/sortstate.cpp
+
 )
 
-target_include_directories( sdl_basegame
+target_include_directories( sdl_tileeditor
         PRIVATE
         src
         ${SDL2_INCLUDE_DIR}
         ${FMT_INCLUDE_DIR}
         )
 
-target_link_libraries( sdl_basegame
+target_link_libraries( sdl_tileeditor
         PRIVATE
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,               SDL2::SDL2,             SDL2::SDL2-static>
