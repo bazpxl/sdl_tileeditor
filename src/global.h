@@ -68,7 +68,7 @@ namespace BzlGame
 
 	template<class T, size_t Size>  using Array  = std::array<T, Size>;
 	template<class T>               using Vector = std::vector<T>;
-
+	template<class T>				using SharedPtr = std::shared_ptr<T>;
 
 	using Clock     = std::chrono::high_resolution_clock;
 	using TimePoint = Clock::time_point;
@@ -77,7 +77,35 @@ namespace BzlGame
 	//using std::cout, std::cin, std::cerr, std::endl;
 	using fmt::print, fmt::println, fmt::format;
 
+	struct bzDeleter{
+		void operator()(Window *p)    const { SDL_DestroyWindow(p);    }
+		void operator()(Renderer *p)  const { SDL_DestroyRenderer(p);  }
+		void operator()(Texture *p)   const { SDL_DestroyTexture(p);    }
+	};
 
+	inline SharedPtr<Texture>
+	CreateSharedTexture(SDL_Renderer *renderer, const char * const file)
+	{
+		Texture *texture = IMG_LoadTexture(renderer, file);
+		if (!texture) throw std::runtime_error("ERROR: IMG_LoadTexture() \n");// handle error or return nullptr
+		return {texture, bzDeleter()};
+	}
+
+	inline SharedPtr<Renderer>
+	CreateSharedRenderer(const std::shared_ptr<Window>& window, int index, Uint32 flags)
+	{
+		Renderer* renderer = SDL_CreateRenderer(window.get(), index, flags);
+		if(renderer == nullptr) throw std::runtime_error("ERROR: Could not create renderer.\n");
+		return {renderer, bzDeleter()};
+	}
+
+	inline SharedPtr<Window>
+	CreateSharedWindow(const char* title, int x, int y, int w, int h, Uint32 flags)
+	{
+		Window* window = SDL_CreateWindow(title, x, y, w, h, flags);
+		if(!window) throw std::runtime_error("ERROR: Could not create window.\n");
+		return {window, bzDeleter()};
+	}
 
 }
 
