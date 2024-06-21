@@ -31,9 +31,14 @@
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 
+#define TILE_SIZE 32
+#define MAP_ROWS 50
+#define MAP_COLS 50
+#define LAYER_NUMB_DEFAULT 5
 
 namespace BzlGame
 {
+
 	using i8    = std::int8_t;
 	using i16   = std::int16_t;
 	using i32   = std::int32_t;
