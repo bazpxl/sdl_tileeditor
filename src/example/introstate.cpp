@@ -35,33 +35,12 @@ void IntroState::Init()
 			n.isVisible = true;
 		}
 	}
-	// ----------------------------------------------------------------------
-	// Create JSON object from map
-
-	nlohmann::json mJSON =
-		{
-		{"rows", map.rows},
-		{"cols", map.cols},
-		{"tileSize", map.tileSize},
-		{ "layer", map.layer},
-		{"tileSetPaths", map.tileSetPaths}
-	};
 
 
-	// write map to json
-	{
-		std::ofstream file{BasePath"asset/map.json"};
-		if(!file)
-		{
-			throw std::invalid_argument("Error: Could not load file: asset/map.json");
-		}
-		file << std::setw(2) << mJSON << std::endl;
-		file.close();
-	}
-
+    json j = serializeToJson( map );
+	writeJson(	j,	BasePath"asset/map.json"	);
 
 	//println("{}", mJSON.dump(1));
-
 }
 
 void IntroState::UnInit()

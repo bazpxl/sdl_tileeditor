@@ -19,7 +19,8 @@ struct Tile
 
 struct Layer
 {
-	Vector<Tile> tileVec{{1, 0}	};
+	//Vector<Tile> tileVec{{1, 0}	};
+	Vector<Tile> tileVec{MAP_COLS * MAP_ROWS};
 	bool isVisible{	true };
 };
 
@@ -43,7 +44,38 @@ struct Map
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, assetID)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Layer, tileVec, isVisible);
-// NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Map, rows, cols, tileSize, TileSetPaths, layer)
+
+
+/// @brief write a JSON-type to a given path
+/// @param dataJson const JSON reference to write from
+/// @param path const char ptr for map filepath.
+/// @return no returned val
+inline void writeJson(const json& dataJson, const char* path)
+{
+	std::ofstream file{path};
+	if(!file)[[unlikely]]
+	{
+		throw std::invalid_argument("Error: Could not load file: asset/map.json");
+	}else[[likely]]
+	{
+		file << std::setw(1) << dataJson << std::endl;
+		file.close();
+	}
+}
+
+/// @brief serializing the "struct Map" to JSON file format
+/// @param map const ref to struct Map
+/// @return returns the serialized JSON type
+inline nlohmann::json serializeToJson(const Map& map)
+{
+	return json{
+		{"rows", map.rows},
+		{"cols", map.cols},
+		{"tileSize", map.tileSize},
+		{ "layer", map.layer},
+		{"tileSetPaths", map.tileSetPaths}
+	};
+}
 
 }
 
