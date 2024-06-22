@@ -47,11 +47,18 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, assetID)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Layer, tileVec, isVisible);
 
 
-/// @brief write a JSON-type to a given path
-/// @param dataJson const JSON reference to write from
-/// @param path const char ptr for map filepath.
-/// @return no returned val
-inline void writeJson(const json& dataJson, const char* path)
+inline Map jsonToMap(const json& j)
+{
+	return {
+		j["layer"].template get<Vector<Layer>>(),
+		j["tileSetPaths"].template get<Vector<string>>(),
+		j["rows"].template get<u32>(),
+		j["cols"].template get<u32>(),
+		j["tileSize"].template get<u16>()
+		};
+}
+
+inline void writeJson(const json& dataJson, const string& path = BasePath"asset/map.json")
 {
 	std::ofstream file{path};
 	if(!file)[[unlikely]]
@@ -72,6 +79,20 @@ inline json serializeToJson(const Map& map)
 		{ "layer", map.layer},
 		{"tileSetPaths", map.tileSetPaths}
 	};
+}
+
+
+inline json readJson(const string& path = BasePath"asset/map.json")
+{
+	std::ifstream file(path);
+	if(!file.is_open())[[unlikely]]
+	{
+		throw std::invalid_argument("Could'nt open file: " + path );
+	}
+	json jsTemp = json::parse(file);
+
+	//DebugOnly(	println("{}", jsTemp.dump(0));	)
+	return jsTemp;
 }
 
 }

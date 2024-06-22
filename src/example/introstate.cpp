@@ -19,28 +19,25 @@ void IntroState::Init()
 			print( stderr, "IMG_LoadTexture failed: {}\n", IMG_GetError() );
 	}
 
-
-	// ----------------------------------------------------------------------
-	// fill map with default-test values
-		map.layer.resize(LAYER_NUMB_DEFAULT,
-			{{
-					{1, 0}
-			}, true });
-
-	for(auto & n : map.layer)
+	/// TEST reading & writing with JSON
+	/// also conversions from Map-to-Json and visa-vie
 	{
-		for(int i = 0; i < 5; i++)
-		{
-			n.tileVec.push_back({1, 0	});
-			n.isVisible = true;
-		}
+		// file-to-json
+		json j = readJson( BasePath"asset/map.json" );
+
+		// json-to-map
+		map = jsonToMap(j);
+
+		// map-to-json
+		json jf = serializeToJson( map );
+
+		// json-to-file
+		writeJson(	jf,	BasePath"asset/map.json"	);
+
+		DebugOnly(		println("{}", jf.dump(0));		)
 	}
 
 
-    json j = serializeToJson( map );
-	writeJson(	j,	BasePath"asset/map.json"	);
-
-	//println("{}", mJSON.dump(1));
 }
 
 void IntroState::UnInit()
@@ -105,10 +102,10 @@ void IntroState::Update( const u32 frame, const u32 totalMSec, const float delta
 
 void IntroState::Render( const u32 frame, const u32 totalMSec, const float deltaT )
 {
-	const Point & winSize = game.GetWindowSize();
+	const auto & [x, y] = game.GetWindowSize();
 
 	{
-		const Rect dst_rect { 0, 0, winSize.x, winSize.y };
+		const Rect dst_rect { 0, 0, x, y };
 		SDL_RenderCopy( render, image, EntireRect, &dst_rect /* same result as EntireRect */ );
 	}
 	

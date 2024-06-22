@@ -25,9 +25,10 @@ protected:
 	Texture * image             = nullptr;
 	Texture * blendedText       = nullptr;
 
-	Map map;
+
 
 public:
+	Map map;
 	// ctor
 	using GameState::GameState;
 
