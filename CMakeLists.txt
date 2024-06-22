@@ -100,6 +100,8 @@ find_package( SDL2_net   CONFIG REQUIRED )
 find_package( fmt        CONFIG REQUIRED )
 find_package( unofficial-nativefiledialog CONFIG REQUIRED )
 find_package(nlohmann_json CONFIG REQUIRED)
+# Prepare doctest for other targets to use
+find_package(doctest REQUIRED)
 
 
 # Why does MSVC exist, but not CLANG or GCC?

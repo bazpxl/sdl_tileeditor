@@ -29,5 +29,8 @@
   }, {
     "name" : "nlohmann-json",
     "version>=" : "3.11.3"
+  }, {
+    "name" : "doctest",
+    "version>=" : "2.4.11"
   } ]
 }
