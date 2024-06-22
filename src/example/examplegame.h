@@ -3,7 +3,8 @@
 #include <global.h>
 
 #include <gamebase.h>
-#include <recthelper.h>
+#include "recthelper.h"
+#include <tilemap.h>
 
 class ExampleGame;
 class IntroState;
@@ -23,6 +24,8 @@ protected:
 	Font    * font              = nullptr;
 	Texture * image             = nullptr;
 	Texture * blendedText       = nullptr;
+
+	Map map;
 
 public:
 	// ctor

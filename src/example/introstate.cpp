@@ -1,3 +1,5 @@
+
+
 #include "examplegame.h"
 
 void IntroState::Init()
@@ -16,6 +18,49 @@ void IntroState::Init()
 		if( !image )
 			print( stderr, "IMG_LoadTexture failed: {}\n", IMG_GetError() );
 	}
+
+
+	// ----------------------------------------------------------------------
+	// fill map with default-test values
+		map.layer.resize(LAYER_NUMB_DEFAULT,
+			{{
+					{1, 0}
+			}, true });
+
+	for(auto & n : map.layer)
+	{
+		for(int i = 0; i < 5; i++)
+		{
+			n.tileVec.push_back({1, 0	});
+			n.isVisible = true;
+		}
+	}
+	// ----------------------------------------------------------------------
+	// Create JSON object from map
+
+	nlohmann::json mJSON =
+		{
+		{"rows", map.rows},
+		{"cols", map.cols},
+		{"tileSize", map.tileSize},
+		{ "layer", map.layer},
+		{"tileSetPaths", map.tileSetPaths}
+	};
+
+
+	// write map to json
+	{
+		std::ofstream file{BasePath"asset/map.json"};
+		if(!file)
+		{
+			throw std::invalid_argument("Error: Could not load file: asset/map.json");
+		}
+		file << std::setw(2) << mJSON << std::endl;
+		file.close();
+	}
+
+
+	//println("{}", mJSON.dump(1));
 
 }
 
