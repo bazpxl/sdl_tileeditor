@@ -99,6 +99,7 @@ find_package( SDL2_image CONFIG REQUIRED )
 find_package( SDL2_net   CONFIG REQUIRED )
 find_package( fmt        CONFIG REQUIRED )
 find_package( unofficial-nativefiledialog CONFIG REQUIRED )
+find_package(nlohmann_json CONFIG REQUIRED)
 
 
 # Why does MSVC exist, but not CLANG or GCC?
@@ -162,6 +163,7 @@ add_executable( sdl_tileeditor
         src/example/examplegame.h
         src/example/examplegame.cpp
         src/example/introstate.cpp
+        src/tilemap.h
 
 )
 
@@ -183,4 +185,5 @@ target_link_libraries( sdl_tileeditor
         $<IF:${FMT_HEADER_ONLY},                        fmt::fmt-header-only,   fmt::fmt>
         $<TARGET_NAME_IF_EXISTS:unofficial::nativefiledialog::nfd>
         $<TARGET_NAME_IF_EXISTS:OpenMP::OpenMP_CXX>
+        nlohmann_json::nlohmann_json
         )

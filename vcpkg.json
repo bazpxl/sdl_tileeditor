@@ -8,7 +8,7 @@
   }, {
     "name" : "sdl2-ttf",
     "version>=" : "2.20.2",
-    "$activate_for_slow_but_nice_font_rendering": "remove the $ in the line below",
+    "$activate_for_slow_but_nice_font_rendering" : "remove the $ in the line below",
     "$features" : [ "harfbuzz" ]
   }, {
     "name" : "sdl2-mixer",
@@ -21,10 +21,13 @@
   }, {
     "name" : "sdl2-net",
     "version>=" : "2.2.0",
-    "features" : []
+    "features" : [ ]
   }, {
     "name" : "fmt"
   }, {
     "name" : "nativefiledialog"
+  }, {
+    "name" : "nlohmann-json",
+    "version>=" : "3.11.3"
   } ]
 }
