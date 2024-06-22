@@ -19,7 +19,6 @@ struct Tile
 
 struct Layer
 {
-	//Vector<Tile> tileVec{{1, 0}	};
 	Vector<Tile> tileVec{MAP_COLS * MAP_ROWS};
 	bool isVisible{	true };
 };
@@ -35,13 +34,15 @@ struct Map
 {
 	Vector<Layer>	layer			{LAYER_NUMB_DEFAULT};
 	//Vector<TileSet>	tileSets		{1};
-	Vector<std::string> tileSetPaths{{BasePath"asset/tSet1.png"}	};
+	Vector<string> tileSetPaths{{BasePath"asset/tSet1.png"}	};
 
 	u32 rows		= MAP_ROWS;
 	u32 cols		= MAP_COLS;
 	u16 tileSize	= TILE_SIZE;
 };
 
+/// generate with these macros inline conversion functions,
+/// to and from JSON for Tile and Layer structs
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, assetID)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Layer, tileVec, isVisible);
 
@@ -55,18 +56,14 @@ inline void writeJson(const json& dataJson, const char* path)
 	std::ofstream file{path};
 	if(!file)[[unlikely]]
 	{
-		throw std::invalid_argument("Error: Could not load file: asset/map.json");
-	}else[[likely]]
-	{
-		file << std::setw(1) << dataJson << std::endl;
-		file.close();
+		throw std::invalid_argument("Error: Could not load file: " + path );
 	}
+	file << std::setw(1) << dataJson << std::endl;
+	file.close();
 }
 
-/// @brief serializing the "struct Map" to JSON file format
-/// @param map const ref to struct Map
-/// @return returns the serialized JSON type
-inline nlohmann::json serializeToJson(const Map& map)
+
+inline json serializeToJson(const Map& map)
 {
 	return json{
 		{"rows", map.rows},
