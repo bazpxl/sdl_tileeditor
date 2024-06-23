@@ -23,18 +23,13 @@ struct Layer
 	bool isVisible{	true };
 };
 
-struct TileSet
-{
-	SharedPtr<Texture> texture;
-	u16 height{};
-	u16 width{};
-};
+
 
 struct Map
 {
-	Vector<Layer>	layer			{LAYER_NUMB_DEFAULT};
-	//Vector<TileSet>	tileSets		{1};
-	Vector<string> tileSetPaths{{BasePath"asset/tSet1.png"}	};
+	Vector<Layer>	layer		{LAYER_NUMB_DEFAULT};
+	Vector<SharedPtr<Texture>> tileSets;
+	Vector<string> tileSetPaths	{{BasePath"asset/graphic/background.png"}	};
 
 	u32 rows		= MAP_ROWS;
 	u32 cols		= MAP_COLS;
@@ -47,15 +42,21 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, assetID)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Layer, tileVec, isVisible);
 
 
-inline Map jsonToMap(const json& j)
+
+inline Map jsonToMap(const json& j, Renderer* render)
 {
-	return {
-		j["layer"].template get<Vector<Layer>>(),
-		j["tileSetPaths"].template get<Vector<string>>(),
-		j["rows"].template get<u32>(),
-		j["cols"].template get<u32>(),
-		j["tileSize"].template get<u16>()
-		};
+	Map map_;
+	map_.layer = j["layer"].template get<Vector<Layer>>();
+	map_.tileSetPaths =	j["tileSetPaths"].template get<Vector<string>>();
+	map_.rows = j["rows"].template get<u32>();
+	map_.cols = j["cols"].template get<u32>();
+	map_.tileSize =	j["tileSize"].template get<u16>();
+	for(const auto & m : map_.tileSetPaths)
+	{
+		map_.tileSets.push_back(CreateSharedTexture(render, m.c_str()));
+	}
+
+	return map_;
 }
 
 inline void writeJson(const json& dataJson, const string& path = BasePath"asset/map.json")
