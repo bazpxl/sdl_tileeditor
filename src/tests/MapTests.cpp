@@ -54,7 +54,7 @@ TEST_CASE("Testing Map") {
     SUBCASE("Testing setters") {
         map.layer.push_back({{}, true});
         map.tileSets.push_back(nullptr);
-        map.tileSetPaths.push_back("new_path");
+        map.tileSetPaths.emplace_back("new_path");
         map.rows = 10;
         map.cols = 10;
         map.tileSize = 10;

@@ -14,7 +14,7 @@ void IntroState::Init()
 
 	if( !image )
 	{
-		image = IMG_LoadTexture( render, BasePath "asset/graphic/background.png" );
+		image = IMG_LoadTexture( render, BasePath "asset/graphic/testSet.png" );
 		if( !image )
 			print( stderr, "IMG_LoadTexture failed: {}\n", IMG_GetError() );
 	}
@@ -26,7 +26,7 @@ void IntroState::Init()
 		json j = readJson( BasePath"asset/map.json" );
 
 		// json-to-map
-		map = jsonToMap(j);
+		map = jsonToMap(j, render);
 
 		// map-to-json
 		json jf = serializeToJson( map );
@@ -108,5 +108,5 @@ void IntroState::Render( const u32 frame, const u32 totalMSec, const float delta
 		const Rect dst_rect { 0, 0, x, y };
 		SDL_RenderCopy( render, image, EntireRect, &dst_rect /* same result as EntireRect */ );
 	}
-	
+
 }

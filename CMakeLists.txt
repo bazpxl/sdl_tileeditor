@@ -166,6 +166,7 @@ add_executable( sdl_tileeditor
         src/example/examplegame.cpp
         src/example/introstate.cpp
         src/tilemap.h
+        src/tests/MapTests.cpp
 
 )
 

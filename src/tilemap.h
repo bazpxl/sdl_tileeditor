@@ -24,24 +24,24 @@ struct Layer
 };
 
 
-
 struct Map
 {
 	Vector<Layer>	layer		{LAYER_NUMB_DEFAULT};
 	Vector<SharedPtr<Texture>> tileSets;
-	Vector<string> tileSetPaths	{{BasePath"asset/graphic/background.png"}	};
+	Vector<string> tileSetPaths	{{BasePath"asset/graphic/testSet.png"}	};
 
 	u32 rows		= MAP_ROWS;
 	u32 cols		= MAP_COLS;
 	u16 tileSize	= TILE_SIZE;
 };
 
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+
 /// generate with these macros inline conversion functions,
 /// to and from JSON for Tile and Layer structs
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, assetID)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Layer, tileVec, isVisible);
-
-
 
 inline Map jsonToMap(const json& j, Renderer* render)
 {
