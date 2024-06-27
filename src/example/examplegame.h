@@ -23,12 +23,21 @@ class IntroState : public GameState
 protected:
 	Font    * font              = nullptr;
 	Texture * image             = nullptr;
-	Texture * blendedText       = nullptr;
+	//Texture * blendedText       = nullptr;
+
+	Point cameraPosition {0,0}; // Camera position
+	Rect cameraView;				// Camera view rectangle
+
+	bool isTileInCameraView(const Rect& dstRect) {
+		return SDL_HasIntersection(&dstRect, &cameraView);
+	}
 
 
 
 public:
-	Map map;
+	MapHeader mHeader;
+	MapData mData;
+
 	// ctor
 	using GameState::GameState;
 

@@ -12,31 +12,32 @@ void IntroState::Init()
 			print( stderr, "TTF_OpenFont failed: {}\n", TTF_GetError() );
 	}
 
-	if( !image )
+	cameraPosition = {0,0};
+	cameraView = {0,0, 1280,960};
+
+	// Open file with native file dialog
+
+	nfdchar_t *outPath = nullptr;
+	nfdresult_t result = NFD_OpenDialog( nullptr, nullptr, &outPath );
+
+	if ( result == NFD_OKAY )
 	{
-		image = IMG_LoadTexture( render, BasePath "asset/graphic/testSet.png" );
-		if( !image )
-			print( stderr, "IMG_LoadTexture failed: {}\n", IMG_GetError() );
+		DebugOnly(
+			println("Load file from: {}", outPath);
+		)
+		readJson(outPath,mHeader,mData,render);
+		free(outPath);
 	}
-
-	/// TEST reading & writing with JSON
-	/// also conversions from Map-to-Json and visa-vie
+	else if ( result == NFD_CANCEL )
 	{
-		// file-to-json
-		json j = readJson( BasePath"asset/map.json" );
-
-		// json-to-map
-		map = jsonToMap(j, render);
-
-		// map-to-json
-		json jf = serializeToJson( map );
-
-		// json-to-file
-		writeJson(	jf,	BasePath"asset/map.json"	);
-
-		DebugOnly(		println("{}", jf.dump(0));		)
+		println("Canceled by user. Load standard-map");
+		readJson( BasePath"asset/map.json",mHeader, mData, render );
 	}
-
+	else
+	{
+		println("Error: {}", NFD_GetError() );
+		readJson( BasePath"asset/map.json",mHeader, mData, render );
+	}
 
 }
 
@@ -71,7 +72,29 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 
 				if( what_key.scancode == SDL_SCANCODE_F3 && event.key.repeat == 0 )
 				{
-					println("ACTION: F3");
+					nfdchar_t *outPath = nullptr;
+					nfdresult_t result = NFD_SaveDialog( nullptr, nullptr, &outPath );
+
+					if ( result == NFD_OKAY )
+					{
+						DebugOnly
+						(
+							print("Save file to: {}", outPath);
+						)
+						writeJson(outPath,mHeader,mData);
+						free(outPath);
+					}
+					else if ( result == NFD_CANCEL )
+					{
+						DebugOnly
+						(
+							println("Canceled file saving");
+						)
+					}
+					else
+					{
+						printf("Error: %s\n", NFD_GetError() );
+					}
 				}
 				else if( what_key.scancode == SDL_SCANCODE_F9 )
 				{
@@ -102,11 +125,47 @@ void IntroState::Update( const u32 frame, const u32 totalMSec, const float delta
 
 void IntroState::Render( const u32 frame, const u32 totalMSec, const float deltaT )
 {
-	const auto & [x, y] = game.GetWindowSize();
+
+	int rows = mHeader.rows;
+	int tileSize = mHeader.tileSize;
+	Rect tileRect{0,0,tileSize,tileSize};
+
+	int set_width, set_height;
+	if(SDL_QueryTexture(mData.tileSets[0].get(), nullptr, nullptr,&set_width,&set_height ) != 0)[[unlikely]]
+	{
+		println("Error: {}", SDL_GetError());
+	}
 
 	{
-		const Rect dst_rect { 0, 0, x, y };
-		SDL_RenderCopy( render, image, EntireRect, &dst_rect /* same result as EntireRect */ );
+		for(const auto & layer : mData.tiles)
+		{
+			for(int tile = 0; tile < layer.size(); tile++)
+			{
+				const u8 id_	= layer[tile].assetID;
+				const u16 type_ = layer[tile].type;
+
+				if(id_ != 0)[[unlikely]]
+				{
+					SDL_QueryTexture(mData.tileSets[id_].get(), nullptr, nullptr, &set_width,&set_height );
+				}
+
+				const Point srcPos = intToPoint(type_,set_width);
+				const Rect srcRect = {srcPos.x,srcPos.y,tileSize,tileSize};
+
+				const Point pos = intToPoint(tile,rows);
+				const Rect dstRect
+				{
+					(pos.x * tileSize) - cameraPosition.x, // Adjust for camera position
+					(pos.y * tileSize) - cameraPosition.y, // Adjust for camera position
+					tileSize, tileSize
+				};
+
+				if (isTileInCameraView(dstRect)){
+					SDL_RenderCopy(render, mData.tileSets[id_].get(), &srcRect, &dstRect);
+				}
+			}
+		}
+
 	}
 
 }

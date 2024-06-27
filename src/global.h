@@ -68,6 +68,8 @@ namespace BzlGame
 	//using Sound     = Mix_Chunk;
 	using Music     = Mix_Music;
 
+	using string = std::string;
+
 	using std::min;
 	using std::max;
 
