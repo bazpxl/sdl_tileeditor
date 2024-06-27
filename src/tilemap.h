@@ -11,89 +11,80 @@ using json = nlohmann::json;
 
 namespace BzlGame
 {
+
 struct Tile
 {
 	u16 type	{1};
 	u8  assetID	{0};
 };
 
-struct Layer
+struct MapHeader
 {
-	Vector<Tile> tileVec{MAP_COLS * MAP_ROWS};
-	bool isVisible{	true };
+	Vector<string> tileSetPaths	{{BasePath"asset/graphic/testSet.png"}};
+	u16 rows		= MAP_ROWS;
+	u16 cols		= MAP_COLS;
+	u8 tileSize		= TILE_SIZE;
+	u8  layerNumb   = LAYER_NUMB_DEFAULT;
 };
 
-
-struct Map
+struct MapData
 {
-	Vector<Layer>	layer		{LAYER_NUMB_DEFAULT};
 	Vector<SharedPtr<Texture>> tileSets;
-	Vector<string> tileSetPaths	{{BasePath"asset/graphic/testSet.png"}	};
-
-	u32 rows		= MAP_ROWS;
-	u32 cols		= MAP_COLS;
-	u16 tileSize	= TILE_SIZE;
+	Vector<Vector<Tile>> tiles {LAYER_NUMB_DEFAULT, Vector<Tile>(MAP_ROWS*MAP_COLS)};
 };
 
+inline int pointToInt( Point r, int xMax ) { return r.x + r.y * xMax; }
+inline Point intToPoint( int s, int xMax ) { return Point { s % xMax, s / xMax }; }
+
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 
-/// generate with these macros inline conversion functions,
-/// to and from JSON for Tile and Layer structs
+/// generate with these macro inline serialization function, to and from JSON for Tile
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, assetID)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Layer, tileVec, isVisible);
 
-inline Map jsonToMap(const json& j, Renderer* render)
-{
-	Map map_;
-	map_.layer = j["layer"].template get<Vector<Layer>>();
-	map_.tileSetPaths =	j["tileSetPaths"].template get<Vector<string>>();
-	map_.rows = j["rows"].template get<u32>();
-	map_.cols = j["cols"].template get<u32>();
-	map_.tileSize =	j["tileSize"].template get<u16>();
-	for(const auto & m : map_.tileSetPaths)
-	{
-		map_.tileSets.push_back(CreateSharedTexture(render, m.c_str()));
-	}
-
-	return map_;
-}
-
-inline void writeJson(const json& dataJson, const string& path = BasePath"asset/map.json")
-{
-	std::ofstream file{path};
-	if(!file)[[unlikely]]
-	{
-		throw std::invalid_argument("Error: Could not load file: " + path );
-	}
-	file << std::setw(1) << dataJson << std::endl;
-	file.close();
-}
-
-
-inline json serializeToJson(const Map& map)
-{
-	return json{
-		{"rows", map.rows},
-		{"cols", map.cols},
-		{"tileSize", map.tileSize},
-		{ "layer", map.layer},
-		{"tileSetPaths", map.tileSetPaths}
-	};
-}
-
-
-inline json readJson(const string& path = BasePath"asset/map.json")
+inline void readJson(const string& path , MapHeader& header, MapData& data, Renderer* render)
 {
 	std::ifstream file(path);
 	if(!file.is_open())[[unlikely]]
 	{
 		throw std::invalid_argument("Could'nt open file: " + path );
 	}
-	json jsTemp = json::parse(file);
+	json j = json::parse(file);
 
-	//DebugOnly(	println("{}", jsTemp.dump(0));	)
-	return jsTemp;
+	header.tileSetPaths =	j["tileSetPaths"].template get<Vector<string>>();
+	header.rows			=	j["rows"].template get<u16>();
+	header.cols			=	j["cols"].template get<u16>();
+	header.tileSize		=	j["tileSize"].template get<u8>();
+	header.layerNumb	=	j["layerNumb"].template get<u8>();
+
+	data.tiles			=	j["tiles"].template get<Vector<Vector<Tile>>>();
+
+	for(auto & vec : header.tileSetPaths)
+	{
+		data.tileSets.push_back(CreateSharedTexture(render, vec.c_str()));
+	}
+	file.close();
+}
+
+inline void writeJson(const string& path , MapHeader& header, MapData& data)
+{
+	// serialize to json
+	json dataJson{
+			{"tileSetPaths", header.tileSetPaths},
+			{"rows", header.rows},
+			{"cols", header.cols},
+			{"tileSize", header.tileSize},
+			{ "layerNumb", header.layerNumb},
+			{"tiles", data.tiles}
+	};
+
+	std::ofstream file{path};
+	if(!file)[[unlikely]]
+	{
+		throw std::invalid_argument("Error: Could not load file: " + path );
+	}
+	file <<  dataJson << std::endl;
+	file.close();
 }
 
 }
