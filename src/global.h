@@ -12,7 +12,8 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
-//#include <iostream>
+#include <iostream>
+#include <fstream>
 #include <memory>
 //#include <sstream>
 #include <string>
@@ -31,10 +32,7 @@
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 
-#define TILE_SIZE 32
-#define MAP_ROWS 50
-#define MAP_COLS 50
-#define LAYER_NUMB_DEFAULT 5
+#define IMGUI true
 
 namespace BzlGame
 {
@@ -84,6 +82,11 @@ namespace BzlGame
 	//using std::cout, std::cin, std::cerr, std::endl;
 	using fmt::print, fmt::println, fmt::format;
 
+	constexpr u16 TileSize		=	32;
+	constexpr Point WindowSize	=  {	1600, 900	};
+	constexpr Rect UpperPanel   =  {	0, 0, WindowSize.x, 13*TileSize };
+	constexpr Rect LowerPanel   =  {	0,14*TileSize, WindowSize.x, 14*TileSize };
+
 	struct bzDeleter{
 		void operator()(Window *p)    const { SDL_DestroyWindow(p);    }
 		void operator()(Renderer *p)  const { SDL_DestroyRenderer(p);  }
@@ -98,8 +101,20 @@ namespace BzlGame
 		return {texture, bzDeleter()};
 	}
 
+	/// Returns empty Texture with
+	inline SharedPtr<Texture>
+	CreateSharedTexture(SDL_Renderer *renderer, Point size)
+	{
+		Texture* texture = SDL_CreateTexture(
+			renderer,
+			SDL_PIXELFORMAT_RGB888,
+			SDL_TEXTUREACCESS_TARGET,
+			size.x, size.y);
+		return {texture, bzDeleter()};
+	}
+
 	inline SharedPtr<Renderer>
-	CreateSharedRenderer(const std::shared_ptr<Window>& window, int index, Uint32 flags)
+	CreateSharedRenderer(const SharedPtr<Window>& window, int index, Uint32 flags)
 	{
 		Renderer* renderer = SDL_CreateRenderer(window.get(), index, flags);
 		if(renderer == nullptr) throw std::runtime_error("ERROR: Could not create renderer.\n");

@@ -11,26 +11,32 @@ using json = nlohmann::json;
 
 namespace BzlGame
 {
+constexpr u16 MapRows		= 50;
+constexpr u16 MapCols		= 50;
+
+constexpr u8 LayerNumb		=  3;
+constexpr u8 CameraSpeed	=  4;
+
 
 struct Tile
 {
-	u16 type	{1};
+	u16 type	{0};
 	u8  assetID	{0};
 };
 
 struct MapHeader
 {
-	Vector<string> tileSetPaths	{{BasePath"asset/graphic/testSet.png"}};
-	u16 rows		= MAP_ROWS;
-	u16 cols		= MAP_COLS;
-	u8 tileSize		= TILE_SIZE;
-	u8  layerNumb   = LAYER_NUMB_DEFAULT;
+	Vector<string> tileSetPaths;
+	u16 rows			= MapRows;
+	u16 cols			= MapCols;
+	u16 tileSize		= TileSize;
+	u8  layerNumb		= LayerNumb;
 };
 
 struct MapData
 {
 	Vector<SharedPtr<Texture>> tileSets;
-	Vector<Vector<Tile>> tiles {LAYER_NUMB_DEFAULT, Vector<Tile>(MAP_ROWS*MAP_COLS)};
+	Vector<Vector<Tile>> tiles {LayerNumb, Vector<Tile>(MapRows*MapCols,{0,0})};
 };
 
 inline int pointToInt( Point r, int xMax ) { return r.x + r.y * xMax; }
@@ -61,7 +67,13 @@ inline void readJson(const string& path , MapHeader& header, MapData& data, Rend
 
 	for(auto & vec : header.tileSetPaths)
 	{
-		data.tileSets.push_back(CreateSharedTexture(render, vec.c_str()));
+		string tmpstr = BasePath;
+		tmpstr.append(vec);
+		DebugOnly(
+			print("{}",tmpstr);
+		)
+		data.tileSets.push_back(CreateSharedTexture(render, tmpstr.c_str()));
+
 	}
 	file.close();
 }

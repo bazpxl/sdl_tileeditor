@@ -32,5 +32,8 @@
   }, {
     "name" : "doctest",
     "version>=" : "2.4.11"
+  }, {
+    "name" : "imgui",
+    "version>=" : "1.90.6"
   } ]
 }
