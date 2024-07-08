@@ -1,5 +1,10 @@
 #include "gamebase.h"
 
+#include "example/examplegame.h"
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
+
 Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 {
 	if( SDL_Init( SDL_INIT_EVERYTHING ) )
@@ -34,13 +39,15 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 		exit( 5 );
 	}
 
+	SDL_WindowFlags flags = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+
 	window = SDL_CreateWindow(
 		windowTitle,
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
 		windowSize.x,
 		windowSize.y,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+		flags );
 
 	if( window == nullptr )
 	{
@@ -64,6 +71,28 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 
 	allStates.reserve( 10 );
 	std::fill( allStates.begin(), allStates.end(), nullptr );
+
+#ifdef IMGUI
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NoKeyboard;
+	// Setup Dear ImGui style
+	//ImGui::StyleColorsDark();
+	ImGui::StyleColorsLight();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplSDL2_InitForSDLRenderer(imgui_window.get(), imgui_render.get());
+	ImGui_ImplSDLRenderer2_Init(imgui_render.get());
+
+
+#endif
+
+
+
+
 }
 
 Game::~Game()
@@ -84,10 +113,17 @@ Game::~Game()
 
 	if( SDL_WasInit( 0 ) )
 		SDL_Quit();
+
+	ImGui_ImplSDLRenderer2_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
 }
 
 bool Game::HandleEvent( const Event event )
 {
+#ifdef IMGUI
+	const ImGuiIO & io = ImGui::GetIO();
+#endif
 	switch( event.type )
 	{
 		case SDL_QUIT:
@@ -97,6 +133,9 @@ bool Game::HandleEvent( const Event event )
 
 		case SDL_KEYDOWN:
 		{
+#ifdef IMGUI
+				if( io.WantCaptureKeyboard ){	return true;	}
+#endif
 			auto & key_event = event.key;
 			Keysym what_key = key_event.keysym;
 
@@ -121,17 +160,6 @@ int Game::Run()
 	Duration deltaTNeeded = Duration::zero();   // How much time was really necessary
 	TimePoint start;
 
-
-	if( 0 ) {
-		nfdchar_t * outPath = NULL;
-		nfdresult_t result = NFD_OpenDialog( NULL, NULL, &outPath );
-
-		if( result == NFD_OKAY ) {
-			print( "Success! Path is {0}\n", outPath );
-			free( outPath );
-		}
-	}
-
 	while( IsRunning() )
 	{
 		start = Clock::now();
@@ -153,14 +181,33 @@ int Game::Run()
 
 		currentState->Update( frame, totalMSec, deltaTF );
 
+#ifdef IMGUI
+		if(imgui_window_active)
+		{
+			ImGui::Begin("ImGUI window", &imgui_window_active);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+			ImGui::Text("First Txt");
+			if (ImGui::Button("Close Me"))
+			{
+				imgui_window_active = false;
+				SDL_RenderClear(imgui_render.get());
+			}
+			ImGui::End();
+			ImGui::Render();
+			SDL_RenderClear(imgui_render.get());
+			ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), imgui_render.get());
+			SDL_RenderPresent( imgui_render.get() );
+		}
+#endif
+
+		currentState->Render( frame, totalMSec, deltaTFNeeded );
+		SDL_RenderPresent( render );
+
 		const Color clear = currentState->GetClearColor();
 		if( clear.a != SDL_ALPHA_TRANSPARENT)
 		{
 			SDL_SetRenderDrawColor( render, clear.r, clear.g, clear.b, clear.a );
-			SDL_RenderClear( render );
 		}
-		currentState->Render( frame, totalMSec, deltaTFNeeded );
-		SDL_RenderPresent( render );
+		SDL_RenderClear(render);
 
 
 		deltaTNeeded = Clock::now() - start;

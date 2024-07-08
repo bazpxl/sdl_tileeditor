@@ -2,6 +2,7 @@
 
 #include <global.h>
 
+struct ImGuiIO;
 using namespace BzlGame;
 
 class Game;
@@ -13,25 +14,44 @@ protected:
 	Window   * window;
 	Renderer * render;
 
-	bool isRunning = true;
+	GameState * currentState = nullptr;
+	Vector<GameState *> allStates;
+
 	u32  frame     = 0;
 
 	int currentStateIdx = -1;
 	int nextStateIdx    = -1;
 
-	GameState * currentState = nullptr;
-	Vector<GameState *> allStates;
+	Point windowSize {WindowSize};
+	bool isRunning = true;
 
-	Point windowSize;
+#ifdef IMGUI
+	SharedPtr<Window> imgui_window = CreateSharedWindow(
+		"gui",
+		0,
+		50,
+		300,
+		300,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN );
+
+	SharedPtr<Renderer> imgui_render = CreateSharedRenderer(
+		imgui_window,
+		-1,
+		SDL_RENDERER_ACCELERATED |SDL_RENDERER_PRESENTVSYNC );
+
+	bool imgui_window_active = true;
+#endif
 
 public:
-	[[nodiscard]]       bool    IsRunning()     const { return isRunning; }
-	[[nodiscard]]       Point & GetWindowSize()       { return windowSize; }
-	[[nodiscard]] const Point & GetWindowSize() const { return windowSize; }
+
+	[[nodiscard]]       bool    IsRunning()     const { return isRunning;   }
+	[[nodiscard]]       Point & GetWindowSize()       { return windowSize;  }
+	[[nodiscard]] const Point & GetWindowSize() const { return windowSize;  }
+	[[nodiscard]]		Window* GetWindow()			  { return window;		}
 
 	explicit Game(
 		const char * windowTitle = "SDL Game",
-		const Point  windowSize  = Point { 1024, 720 },
+		const Point  windowSize  = WindowSize,
 		const bool   vSync       = true );
 	Game(              const Game &  ) = delete;
 	Game(                    Game && ) = delete;
