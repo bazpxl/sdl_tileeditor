@@ -1,7 +1,8 @@
 #include "examplegame.h"
+#include "imgui/imgui.h"
 
 ExampleGame::ExampleGame()
-	: Game( "Example SDL Game", Point{ 1280, 960 }, false )
+	: Game( "BZ_tilemap_editor", WindowSize, true )
 {
 	// Will be freed in Game dtor
 	allStates = {
@@ -17,11 +18,20 @@ ExampleGame::ExampleGame()
 
 bool ExampleGame::HandleEvent( const Event event )
 {
+#ifdef IMGUI
+	const ImGuiIO & io = ImGui::GetIO();
+#endif
 	// Global Keybindings, will be checked before the ones in GameState
 	switch( event.type )
 	{
 		case SDL_KEYDOWN:
 		{
+#ifdef IMGUI
+				if( io.WantCaptureKeyboard )
+				{
+					return true;
+				}
+#endif
 			const Keysym & what_key = event.key.keysym;
 
 			if( what_key.scancode == SDL_SCANCODE_1 )
@@ -31,7 +41,7 @@ bool ExampleGame::HandleEvent( const Event event )
 				SetNextState( 0 );
 				return true;
 			}
-			else if( what_key.scancode == SDL_SCANCODE_2 )
+			if( what_key.scancode == SDL_SCANCODE_2 )
 			{
 				SetNextState( 1 );
 				return true;
