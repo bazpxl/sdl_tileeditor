@@ -1,10 +1,10 @@
 
 
 #include "examplegame.h"
-#include "imgui/imgui.h"
-#include "imgui/backends/imgui_impl_sdl2.h"
-#include "imgui/backends/imgui_impl_sdlrenderer2.h"
 
+#include <imgui.h>
+#include <../imgui/imgui_impl_sdl2.h>
+#include <../imgui/imgui_impl_sdlrenderer2.h>
 
 void IntroState::Init()
 {
@@ -183,10 +183,19 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 				{
 					if(event.button.button == SDL_BUTTON_LEFT)
 					{
-						if(mouseposition.y * scaledTileSize  >= LowerPanel.y)
+						if((mouseposition.y * scaledTileSize  >= LowerPanel.y) &&	isAtlasVisible())
 						{
 							selectedtile.x = mouseposition.x * scaledTileSize;
 							selectedtile.y = mouseposition.y * scaledTileSize - LowerPanel.y;
+						}
+						if(mouseposition.y * scaledTileSize < LowerPanel.y)
+						{
+							const Point unscaled_point = {selectedtile.x / scaledTileSize, selectedtile.y / scaledTileSize};
+							const int selected_type = pointToInt(unscaled_point, tset_size_array[tileset_id].x  / TileSize);
+							const int dst_pos = pointToInt(mouseposition, m_header.cols);
+							m_data.tiles[active_layer_id][dst_pos].type = selected_type;
+							m_data.tiles[active_layer_id][dst_pos].assetID = tileset_id;
+							println("m_data.tiles[{}] {}  {}",active_layer_id, m_data.tiles[active_layer_id][dst_pos].type, m_data.tiles[active_layer_id][dst_pos].assetID);
 						}
 					}
 				}
@@ -255,6 +264,9 @@ void IntroState::Render( const u32 frame, const u32 totalMSec, const float delta
 				ImGui::Checkbox("Show Atlas", &atlas_open);
 				ImGui::SliderInt("Atlas height", &LowerPanel.h, MinSize, MaxSize);
 				 LowerPanel.y = ((MaxSize - LowerPanel.h) / scaledTileSize) * scaledTileSize;
+				int slider_layer = active_layer_id;
+				ImGui::SliderInt("active layer:", &slider_layer, 0, LayerNumb);
+				active_layer_id = slider_layer;
 				ImGui::End();
 				ImGui::Render();
 				SDL_SetRenderDrawColor(render, (Uint8)(0.45f * 255), (Uint8)(0.55f * 255), (Uint8)(0.60f * 255), (Uint8)(1.00f * 255));
@@ -273,8 +285,8 @@ void IntroState::Render( const u32 frame, const u32 totalMSec, const float delta
 
 void IntroState::RenderAtlas() const
 {
-	assert(WindowSize.x > tileSetSizes[activeSetId].x)
-	assert(WindowSize.y > tileSetSizes[activeSetId].y);
+	assert(WindowSize.x > tset_size_array[tileset_id].x);
+	assert(WindowSize.y > tset_size_array[tileset_id].y);
 
 		const int tileNumb = (tset_size_array[tileset_id].x * tset_size_array[tileset_id].y) / TileSize;
 		for(int i = 0; i < tileNumb; i++)

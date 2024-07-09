@@ -97,18 +97,18 @@ set(IMGUI_SOURCES
         ${IMGUI_DIR}/imgui.cpp
         ${IMGUI_DIR}/imgui_draw.cpp
         ${IMGUI_DIR}/imgui_tables.cpp
-        ${IMGUI_DIR}/imgui_demo.cpp
+     #   ${IMGUI_DIR}/imgui_demo.cpp
         ${IMGUI_DIR}/imgui_widgets.cpp
-        ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
-        ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.cpp
-        ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.h
-        ${IMGUI_DIR}/backends/imgui_impl_sdl2.h
+        ${IMGUI_DIR}/imgui_impl_sdl2.cpp
+        ${IMGUI_DIR}/imgui_impl_sdlrenderer2.cpp
+        ${IMGUI_DIR}/imgui_impl_sdlrenderer2.h
+        ${IMGUI_DIR}/imgui_impl_sdl2.h
         ${IMGUI_DIR}/imgui.h
-        ${IMGUI_DIR}/imconfig.h
-        ${IMGUI_DIR}/imgui_internal.h
-        ${IMGUI_DIR}/imstb_rectpack.h
-        ${IMGUI_DIR}/imstb_textedit.h
-        ${IMGUI_DIR}/imstb_truetype.h
+      #  ${IMGUI_DIR}/imconfig.h
+       # ${IMGUI_DIR}/imgui_internal.h
+       # ${IMGUI_DIR}/imstb_rectpack.h
+       # ${IMGUI_DIR}/imstb_textedit.h
+       # ${IMGUI_DIR}/imstb_truetype.h
 )
 
 include_directories(${IMGUI_DIR})
@@ -120,9 +120,10 @@ find_package( SDL2_image CONFIG REQUIRED )
 find_package( SDL2_net   CONFIG REQUIRED )
 find_package( fmt        CONFIG REQUIRED )
 find_package( unofficial-nativefiledialog CONFIG REQUIRED )
-find_package(nlohmann_json CONFIG REQUIRED)
+find_package( nlohmann_json CONFIG REQUIRED )
 # Prepare doctest for other targets to use
-find_package(doctest REQUIRED)
+find_package(doctest CONFIG REQUIRED)
+
 
 
 
@@ -198,7 +199,6 @@ target_include_directories( sdl_tileeditor
         src
         ${SDL2_INCLUDE_DIR}
         ${FMT_INCLUDE_DIR}
-        src/imgui
         )
 
 target_link_libraries( sdl_tileeditor
