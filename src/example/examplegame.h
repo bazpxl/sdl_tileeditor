@@ -34,18 +34,20 @@ protected:
 	Array<Point, 10> tset_size_array{{0,0}};		// width/height of the different assets/tilesets
 
 	u8 zoom					= 2;
-	Rect camera_map		= {0,0,WindowSize.x,7*TileSize*zoom};
-	Rect camera_atlas		= {0,7*TileSize*zoom,WindowSize.x,7*TileSize*zoom};
+	const u16 scaledTileSize = zoom * TileSize;
+	Rect camera_map		= {0,0,WindowSize.x,7*scaledTileSize};
+
+	Rect LowerPanel   =  {	0,7*scaledTileSize, WindowSize.x, 7*scaledTileSize };
 
 	Point mouseposition		= {0,0};
-	Point selectedtile		= {0,7*TileSize*zoom};
+	Point selectedtile		= {0, LowerPanel.y};
 
 	u8 tileset_id			= 0;
 	bool atlas_open			= true;
 
 
-	const u16 scaledTileSize = zoom * TileSize;
-	[[nodiscard]] bool isAtlasVisible() const { return atlas_open;	}
+
+	[[nodiscard]] bool isAtlasVisible() const { return atlas_open;	};
 
 public:
 	// ctor
@@ -62,7 +64,7 @@ public:
 	void Events( const u32 frame, const u32 totalMSec, const float deltaT ) override;
 	void Update( const u32 frame, const u32 totalMSec, const float deltaT ) override;
 	void Render( const u32 frame, const u32 totalMSec, const float deltaT ) override;
-	void RenderAtlas();
+	void RenderAtlas() const;
 	void RenderGUI();
 };
 

@@ -26,9 +26,6 @@ void IntroState::Init()
 		tset_size_array[i].x = tset_size_array[i].x;
 		tset_size_array[i].y = tset_size_array[i].y;
 	}
-
-
-
 }
 
 void IntroState::UnInit()
@@ -79,10 +76,6 @@ void IntroState::OpenFileDialog()
 
 	if ( result == NFD_OKAY )
 	{
-		DebugOnly
-		({
-			println("Load file from: {}", outPath);
-		})
 		readJson(outPath,m_header,m_data,render);
 		free(outPath);
 	}
@@ -178,8 +171,8 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 				if( io.WantCaptureMouse ){	continue;	}
 #endif
 				/// Update current mouse position
-				mouseposition.x  = event.motion.x / (m_header.tileSize * zoom);
-				mouseposition.y  = event.motion.y / (m_header.tileSize * zoom);
+				mouseposition.x  = event.motion.x / (scaledTileSize);
+				mouseposition.y  = event.motion.y / (scaledTileSize);
 			break;
 
 			case SDL_MOUSEBUTTONDOWN:
@@ -190,10 +183,10 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 				{
 					if(event.button.button == SDL_BUTTON_LEFT)
 					{
-						if(mouseposition.y  * TileSize * zoom > 14*TileSize)
+						if(mouseposition.y * scaledTileSize  >= LowerPanel.y)
 						{
-							selectedtile.x = mouseposition.x * TileSize * zoom;
-							selectedtile.y = mouseposition.y * TileSize * zoom;
+							selectedtile.x = mouseposition.x * scaledTileSize;
+							selectedtile.y = mouseposition.y * scaledTileSize - LowerPanel.y;
 						}
 					}
 				}
@@ -215,12 +208,12 @@ void IntroState::Update( const u32 frame, const u32 totalMSec, const float delta
 
 void IntroState::Render( const u32 frame, const u32 totalMSec, const float deltaT )
 {
+
 	for(const auto & lay : m_data.tiles)
 	{
 		for(int tile = 0; tile < lay.size(); tile++)
 		{
 			// Calculate position from type in TileSet
-
 			const Point tsetCoords = intToPoint(lay[tile].type, tset_size_array[lay[tile].assetID].x / TileSize);
 			const Rect srcRect
 			{
@@ -231,34 +224,58 @@ void IntroState::Render( const u32 frame, const u32 totalMSec, const float delta
 			// Calculate destination on Map
 			const Point dstCoords = intToPoint(tile,m_header.rows);
 
-			//println("{} {}", dstCoords.x, dstCoords.y);
 			const Rect dstRect
 			{
-				dstCoords.x * scaledTileSize - camera_map.x *scaledTileSize,
-				dstCoords.y * scaledTileSize - camera_map.y *scaledTileSize,
+				dstCoords.x *scaledTileSize - camera_map.x  ,
+				dstCoords.y *scaledTileSize - camera_map.y  ,
 				scaledTileSize, scaledTileSize
 			};
 
-			// check if dstRect intersect with tile atlas area, if not, render!
-			//if(dstCoords.y * scaledTileSize + TileSize < WindowSize.y - (tset_size_array[tileset_id].y * zoom))
-			if(!SDL_HasIntersection(&dstRect, &LowerPanel) || !isAtlasVisible() )
+			if(atlas_open)
+			{
+				if(dstRect.y+TileSize < LowerPanel.y)
+				{
+					SDL_RenderCopy(render, m_data.tileSets[lay[tile].assetID].get(), &srcRect, &dstRect);
+				}
+			}else
 			{
 				SDL_RenderCopy(render, m_data.tileSets[lay[tile].assetID].get(), &srcRect, &dstRect);
 			}
+
 		}
 	}
+	#ifdef IMGUI
+			constexpr int MaxSize = 650;
+			constexpr int MinSize = 50;
+			if(game.imgui_window_active)
+			{
+				// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+				ImGui::Begin("ImGUI window", &game.imgui_window_active);
+				//ImGui::ShowDemoWindow();
+				ImGui::Checkbox("Show Atlas", &atlas_open);
+				ImGui::SliderInt("Atlas height", &LowerPanel.h, MinSize, MaxSize);
+				 LowerPanel.y = ((MaxSize - LowerPanel.h) / scaledTileSize) * scaledTileSize;
+				ImGui::End();
+				ImGui::Render();
+				SDL_SetRenderDrawColor(render, (Uint8)(0.45f * 255), (Uint8)(0.55f * 255), (Uint8)(0.60f * 255), (Uint8)(1.00f * 255));
+				SDL_RenderClear(game.imgui_render.get());
+				ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), game.imgui_render.get());
+				SDL_RenderPresent( game.imgui_render.get() );
 
-	RenderAtlas();
+			}
+	#endif
+	if(atlas_open){
+		RenderAtlas();
+	}
 	RenderGUI();
+
 }
 
-void IntroState::RenderAtlas()
+void IntroState::RenderAtlas() const
 {
-	assert(WindowSize.x > tileSetSizes[activeSetId].x * scale_ );
-	assert(WindowSize.y > tileSetSizes[activeSetId].y * scale_ );
+	assert(WindowSize.x > tileSetSizes[activeSetId].x)
+	assert(WindowSize.y > tileSetSizes[activeSetId].y);
 
-	if(isAtlasVisible())
-	{
 		const int tileNumb = (tset_size_array[tileset_id].x * tset_size_array[tileset_id].y) / TileSize;
 		for(int i = 0; i < tileNumb; i++)
 		{
@@ -272,14 +289,20 @@ void IntroState::RenderAtlas()
 			const Rect dstRect =
 			{
 				relCoords.x * scaledTileSize,
-			   WindowSize.y - (7 * scaledTileSize) + relCoords.y * scaledTileSize,
+			   LowerPanel.y + relCoords.y * scaledTileSize,
 			   scaledTileSize, scaledTileSize
 		   };
 
 			SDL_RenderCopy(render, m_data.tileSets[tileset_id].get(), &srcRect, &dstRect);
+
+			// marker for selected tile in atlas
+			const Rect mouse_srcRect = {0,0,scaledTileSize,scaledTileSize};
+			const Rect dst_rect = {selectedtile.x, selectedtile.y + LowerPanel.y, scaledTileSize, scaledTileSize};
+			SDL_RenderCopy(render, gui_texture.get(), &mouse_srcRect, &dst_rect );
+
 		}
 
-	}
+
 }
 
 void IntroState::RenderGUI()
@@ -294,11 +317,6 @@ void IntroState::RenderGUI()
 	};
 	SDL_RenderCopy(render, gui_texture.get(), &mouse_srcRect, &mouse_dstRect);
 
-	// marker for selected tile in atlas
-	if(isAtlasVisible())
-	{
-		Rect dst_rect = {selectedtile.x, selectedtile.y, scaledTileSize, scaledTileSize};
-		SDL_RenderCopy(render, gui_texture.get(), &mouse_srcRect, &dst_rect );
-	}
+
 
 }

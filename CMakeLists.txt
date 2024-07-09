@@ -125,6 +125,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(doctest REQUIRED)
 
 
+
 # Why does MSVC exist, but not CLANG or GCC?
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
     set( CLANG 1 )
