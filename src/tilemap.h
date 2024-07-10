@@ -38,7 +38,7 @@ struct MapHeader
 struct MapData
 {
 	Vector<SharedPtr<Texture>> tileSets;
-	Vector<Vector<Tile>> tiles {LayerNumb, Vector<Tile>(MapRows*MapCols,{EmptyTileVal,0})};
+	Vector<Vector<Tile>> tiles {LayerNumb-1, Vector<Tile>(MapRows*MapCols,{EmptyTileVal,0})};
 };
 
 //------------------------------------------------------------------------

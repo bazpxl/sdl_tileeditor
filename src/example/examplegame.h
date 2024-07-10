@@ -39,7 +39,7 @@ protected:
 	Point mousepos_				= {0,0};
 	Point selected_pos_			= {0, lower_panel_.y};
 
-	u8 layer_id_				= LayerNumb;
+	u8 layer_id_				= LayerNumb - 1;
 	u8 tileset_id_				= 0;
 
 	bool atlas_open_			= true;

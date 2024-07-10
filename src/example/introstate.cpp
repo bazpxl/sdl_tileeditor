@@ -40,11 +40,11 @@ void IntroState::readJson(const string & path)
 	}
 	json j = json::parse(file);
 
-	map_header_.asset_paths =	j["tileSetPaths"].template get<Vector<string>>();
+	map_header_.asset_paths =	j["asset_paths"].template get<Vector<string>>();
 	map_header_.rows			=	j["rows"].template get<u16>();
 	map_header_.cols			=	j["cols"].template get<u16>();
-	map_header_.tilesize		=	j["tileSize"].template get<u8>();
-	map_header_.layer_numb	=	j["layerNumb"].template get<u8>();
+	map_header_.tilesize		=	j["tilesize"].template get<u8>();
+	map_header_.layer_numb	=	j["layer_numb"].template get<u8>();
 
 	map_data_.tiles			=	j["tiles"].template get<Vector<Vector<Tile>>>();
 
@@ -64,11 +64,11 @@ void IntroState::readJson(const string & path)
 void IntroState::writeJson(const string & path)
 {
 	json dataJson{
-		{"tileSetPaths", map_header_.asset_paths},
+		{"asset_paths", map_header_.asset_paths},
 		{"rows", map_header_.rows},
 		{"cols", map_header_.cols},
-		{"tileSize", map_header_.tilesize},
-		{ "layerNumb", map_header_.layer_numb},
+		{"tilesize", map_header_.tilesize},
+		{ "layer_numb", map_header_.layer_numb},
 		{"tiles", map_data_.tiles}
 	};
 
@@ -77,8 +77,9 @@ void IntroState::writeJson(const string & path)
 	{
 		throw std::invalid_argument("Error: Could not load file: " + path );
 	}
-	file << std::setw(1)  <<  dataJson << std::endl;
+	file <<  dataJson << std::endl;
 	file.close();
+	dataJson.clear();
 }
 
 void IntroState::SaveFileDialog()
@@ -114,7 +115,7 @@ void IntroState::OpenFileDialog()
 	else if ( result == NFD_CANCEL )
 	{
 		println("Canceled by user. Load standard-map");
-		readJson( BasePath"asset/map.json" );
+		//readJson( BasePath"asset/map.json" );
 	}
 	else
 	{
@@ -212,11 +213,10 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 						if((mousepos_.y * scaled_size_ < lower_panel_.y) || !isAtlasVisible()	)
 						{
 							const Point unscaled_point = {selected_pos_.x / scaled_size_, selected_pos_.y / scaled_size_};
-							const int selected_type = pointToInt(unscaled_point, tset_size_array_[tileset_id_].x  / TileSize);
+							const int selected_type = static_cast<u16>(pointToInt(unscaled_point, tset_size_array_[tileset_id_].x  / TileSize));
 							const int dst_pos = pointToInt(mousepos_, map_header_.cols);
 							map_data_.tiles[layer_id_][dst_pos].type = selected_type;
 							map_data_.tiles[layer_id_][dst_pos].asset_id = tileset_id_;
-							//println("m_data.tiles[{}] {}  {}",active_layer_id, m_data.tiles[active_layer_id][dst_pos].type, m_data.tiles[active_layer_id][dst_pos].assetID);
 						}
 					}else if(event.button.button == SDL_BUTTON_RIGHT)
 					{
@@ -243,7 +243,7 @@ void IntroState::Render( const u32 frame, const u32 totalMSec, const float delta
 	{
 		for(int tile = 0; tile < lay.size(); tile++)
 		{
-			assert(lay[tile].type >= 0 && lay[tile].type <= EmptyTileVal);
+			assert(lay[tile].type <= EmptyTileVal);
 			if(lay[tile].type != EmptyTileVal){
 				// Calculate position from type in TileSet
 				const Point tsetCoords = intToPoint(lay[tile].type, tset_size_array_[lay[tile].asset_id].x / TileSize);
@@ -286,8 +286,8 @@ void IntroState::Render( const u32 frame, const u32 totalMSec, const float delta
 
 void IntroState::RenderAtlas() const
 {
-	assert(WindowSize.x > tset_size_array[tileset_id].x);
-	assert(WindowSize.y > tset_size_array[tileset_id].y);
+	assert(WindowSize.x > tset_size_array_[tileset_id_].x);
+	assert(WindowSize.y > tset_size_array_[tileset_id_].y);
 
 		const int tileNumb = (tset_size_array_[tileset_id_].x * tset_size_array_[tileset_id_].y) / TileSize;
 		for(int i = 0; i < tileNumb; i++)
@@ -335,7 +335,7 @@ void IntroState::RenderGUI()
 	ImGui::NewFrame();
 
 	constexpr int MaxSize = 650;
-	constexpr int MinSize = 50;
+	constexpr int MinSize = 0;
 	if(game.imgui_window_active)
 	{
 		ImGui::Begin("ImGUI window", &game.imgui_window_active);
@@ -348,7 +348,7 @@ void IntroState::RenderGUI()
 
 		// Control current active Layer
 		int slider_layer = layer_id_;
-		ImGui::SliderInt("active layer:", &slider_layer, 0, LayerNumb);
+		ImGui::SliderInt("active layer:", &slider_layer, 0, LayerNumb-1);
 		layer_id_ = static_cast<u8>(slider_layer);
 
 		ImGui::End();
