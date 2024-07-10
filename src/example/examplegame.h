@@ -58,8 +58,6 @@ public:
 	void Init() override;
 	void UnInit() override;
 
-
-
 	void SaveFileDialog();
 	void OpenFileDialog();
 

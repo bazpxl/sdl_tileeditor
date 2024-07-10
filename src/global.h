@@ -85,8 +85,6 @@ namespace BzlGame
 	constexpr u16 TileSize		=	32;
 	constexpr Point WindowSize	=  {	1600, 900	};
 
-
-
 	struct bzDeleter{
 		void operator()(Window *p)    const { SDL_DestroyWindow(p);    }
 		void operator()(Renderer *p)  const { SDL_DestroyRenderer(p);  }

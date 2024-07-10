@@ -36,7 +36,7 @@ struct MapHeader
 struct MapData
 {
 	Vector<SharedPtr<Texture>> tileSets;
-	Vector<Vector<Tile>> tiles {LayerNumb, Vector<Tile>(MapRows*MapCols,{0,0})};
+	Vector<Vector<Tile>> tiles {LayerNumb, Vector<Tile>(MapRows*MapCols,{255,0})};
 };
 
 inline int pointToInt( Point r, int xMax ) { return r.x + r.y * xMax; }

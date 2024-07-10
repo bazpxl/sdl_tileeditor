@@ -73,26 +73,19 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 	std::fill( allStates.begin(), allStates.end(), nullptr );
 
 #ifdef IMGUI
-
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NoKeyboard;
+
 	// Setup Dear ImGui style
-	//ImGui::StyleColorsDark();
 	ImGui::StyleColorsLight();
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForSDLRenderer(window, render);
 	ImGui_ImplSDLRenderer2_Init(render);
-	//ImGui_ImplSDL2_InitForSDLRenderer(imgui_window.get(), imgui_render.get());
-	//ImGui_ImplSDLRenderer2_Init(imgui_render.get());
-
 #endif
-
-
-
 
 }
 
@@ -100,6 +93,10 @@ Game::~Game()
 {
 	for( GameState * state : allStates )
 		delete state;
+
+	ImGui_ImplSDLRenderer2_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
 
 	if( render != nullptr )
 		SDL_DestroyRenderer( render );
@@ -115,9 +112,6 @@ Game::~Game()
 	if( SDL_WasInit( 0 ) )
 		SDL_Quit();
 
-	ImGui_ImplSDLRenderer2_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
-	ImGui::DestroyContext();
 }
 
 bool Game::HandleEvent( const Event event )
