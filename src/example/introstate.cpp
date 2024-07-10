@@ -39,7 +39,6 @@ void IntroState::UnInit()
 	image = nullptr;
 	blendedText = nullptr;
 	*/
-
 }
 
 void IntroState::SaveFileDialog()
@@ -179,26 +178,34 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 #ifdef IMGUI
 				if( io.WantCaptureMouse ){	continue;	}
 #endif
-				if(isAtlasVisible())
-				{
+
 					if(event.button.button == SDL_BUTTON_LEFT)
 					{
+						// if mouse is inside LowerPanel, select tile on current mouse pos
 						if((mouseposition.y * scaledTileSize  >= LowerPanel.y) &&	isAtlasVisible())
 						{
 							selectedtile.x = mouseposition.x * scaledTileSize;
 							selectedtile.y = mouseposition.y * scaledTileSize - LowerPanel.y;
 						}
-						if(mouseposition.y * scaledTileSize < LowerPanel.y)
+						// if mouse is NOT in LowerPanel, place last Selected Tile on current Position.
+						if((mouseposition.y * scaledTileSize < LowerPanel.y) || !isAtlasVisible()	)
 						{
 							const Point unscaled_point = {selectedtile.x / scaledTileSize, selectedtile.y / scaledTileSize};
 							const int selected_type = pointToInt(unscaled_point, tset_size_array[tileset_id].x  / TileSize);
 							const int dst_pos = pointToInt(mouseposition, m_header.cols);
 							m_data.tiles[active_layer_id][dst_pos].type = selected_type;
 							m_data.tiles[active_layer_id][dst_pos].assetID = tileset_id;
-							println("m_data.tiles[{}] {}  {}",active_layer_id, m_data.tiles[active_layer_id][dst_pos].type, m_data.tiles[active_layer_id][dst_pos].assetID);
+							//println("m_data.tiles[{}] {}  {}",active_layer_id, m_data.tiles[active_layer_id][dst_pos].type, m_data.tiles[active_layer_id][dst_pos].assetID);
+						}
+					}else if(event.button.button == SDL_BUTTON_RIGHT)
+					{
+						// if mouse is in valid Panel, click to remove tile type and replace it with EmptyTileVal.
+						if((mouseposition.y * scaledTileSize < LowerPanel.y) || !isAtlasVisible()	)
+						{
+							const int dst_pos = pointToInt(mouseposition, m_header.cols);
+							m_data.tiles[active_layer_id][dst_pos].type = EmptyTileVal;
 						}
 					}
-				}
 				break;
 			default:
 				break;
@@ -206,14 +213,8 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 
 void IntroState::Update( const u32 frame, const u32 totalMSec, const float deltaT )
 {
-#ifdef IMGUI
-	// Start the Dear ImGui frame
-	ImGui_ImplSDLRenderer2_NewFrame();
-	ImGui_ImplSDL2_NewFrame();
-	ImGui::NewFrame();
-#endif
-}
 
+}
 
 void IntroState::Render( const u32 frame, const u32 totalMSec, const float deltaT )
 {
@@ -222,60 +223,40 @@ void IntroState::Render( const u32 frame, const u32 totalMSec, const float delta
 	{
 		for(int tile = 0; tile < lay.size(); tile++)
 		{
-			// Calculate position from type in TileSet
-			const Point tsetCoords = intToPoint(lay[tile].type, tset_size_array[lay[tile].assetID].x / TileSize);
-			const Rect srcRect
-			{
-				tsetCoords.x * m_header.tileSize,
-				tsetCoords.y * m_header.tileSize,
-				m_header.tileSize, m_header.tileSize
-			};
-			// Calculate destination on Map
-			const Point dstCoords = intToPoint(tile,m_header.rows);
+			assert(lay[tile].type >= 0 && lay[tile].type <= EmptyTileVal);
+			if(lay[tile].type != EmptyTileVal){
+				// Calculate position from type in TileSet
+				const Point tsetCoords = intToPoint(lay[tile].type, tset_size_array[lay[tile].assetID].x / TileSize);
+				const Rect srcRect
+				{
+					tsetCoords.x * m_header.tileSize,
+					tsetCoords.y * m_header.tileSize,
+					m_header.tileSize, m_header.tileSize
+				};
 
-			const Rect dstRect
-			{
-				dstCoords.x *scaledTileSize - camera_map.x  ,
-				dstCoords.y *scaledTileSize - camera_map.y  ,
-				scaledTileSize, scaledTileSize
-			};
+				// Calculate destination on Map
+				const Point dstCoords = intToPoint(tile,m_header.rows);
+				const Rect dstRect
+				{
+					dstCoords.x *scaledTileSize - camera_map.x  ,
+					dstCoords.y *scaledTileSize - camera_map.y  ,
+					scaledTileSize, scaledTileSize
+				};
 
-			if(atlas_open)
-			{
-				if(dstRect.y+TileSize < LowerPanel.y)
+				if(atlas_open)
+				{
+					if(dstRect.y+TileSize < LowerPanel.y)
+					{
+						SDL_RenderCopy(render, m_data.tileSets[lay[tile].assetID].get(), &srcRect, &dstRect);
+					}
+				}else
 				{
 					SDL_RenderCopy(render, m_data.tileSets[lay[tile].assetID].get(), &srcRect, &dstRect);
 				}
-			}else
-			{
-				SDL_RenderCopy(render, m_data.tileSets[lay[tile].assetID].get(), &srcRect, &dstRect);
 			}
-
 		}
 	}
-	#ifdef IMGUI
-			constexpr int MaxSize = 650;
-			constexpr int MinSize = 50;
-			if(game.imgui_window_active)
-			{
-				// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-				ImGui::Begin("ImGUI window", &game.imgui_window_active);
-				//ImGui::ShowDemoWindow();
-				ImGui::Checkbox("Show Atlas", &atlas_open);
-				ImGui::SliderInt("Atlas height", &LowerPanel.h, MinSize, MaxSize);
-				 LowerPanel.y = ((MaxSize - LowerPanel.h) / scaledTileSize) * scaledTileSize;
-				int slider_layer = active_layer_id;
-				ImGui::SliderInt("active layer:", &slider_layer, 0, LayerNumb);
-				active_layer_id = slider_layer;
-				ImGui::End();
-				ImGui::Render();
-				SDL_SetRenderDrawColor(render, (Uint8)(0.45f * 255), (Uint8)(0.55f * 255), (Uint8)(0.60f * 255), (Uint8)(1.00f * 255));
-				SDL_RenderClear(game.imgui_render.get());
-				ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), game.imgui_render.get());
-				SDL_RenderPresent( game.imgui_render.get() );
 
-			}
-	#endif
 	if(atlas_open){
 		RenderAtlas();
 	}
@@ -313,8 +294,6 @@ void IntroState::RenderAtlas() const
 			SDL_RenderCopy(render, gui_texture.get(), &mouse_srcRect, &dst_rect );
 
 		}
-
-
 }
 
 void IntroState::RenderGUI()
@@ -329,6 +308,36 @@ void IntroState::RenderGUI()
 	};
 	SDL_RenderCopy(render, gui_texture.get(), &mouse_srcRect, &mouse_dstRect);
 
+#ifdef IMGUI
 
+	ImGui_ImplSDLRenderer2_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+
+	constexpr int MaxSize = 650;
+	constexpr int MinSize = 50;
+	if(game.imgui_window_active)
+	{
+		ImGui::Begin("ImGUI window", &game.imgui_window_active);
+		ImGui::Checkbox("Show Atlas", &atlas_open);
+
+		// Control panel sizes
+		ImGui::SliderInt("Atlas height", &LowerPanel.h, MinSize, MaxSize);
+		LowerPanel.y = ((MaxSize - LowerPanel.h) / scaledTileSize) * scaledTileSize;
+		UpperPanel.h = WindowSize.y - LowerPanel.h;
+
+		// Control current active Layer
+		int slider_layer = active_layer_id;
+		ImGui::SliderInt("active layer:", &slider_layer, 0, LayerNumb);
+		active_layer_id = static_cast<u8>(slider_layer);
+
+		ImGui::End();
+		ImGui::Render();
+		SDL_SetRenderDrawColor(render, (Uint8)(0.45f * 255), (Uint8)(0.55f * 255), (Uint8)(0.60f * 255), (Uint8)(1.00f * 255));
+
+		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), render);
+
+	}
+#endif
 
 }

@@ -16,7 +16,7 @@ constexpr u16 MapCols		= 50;
 
 constexpr u8 LayerNumb		=  3;
 constexpr u8 CameraSpeed	=  4;
-
+constexpr u8 EmptyTileVal	= 255;
 
 struct Tile
 {
