@@ -37,7 +37,8 @@ protected:
 	const u16 scaledTileSize = zoom * TileSize;
 	Rect camera_map		= {0,0,WindowSize.x,7*scaledTileSize};
 
-	Rect LowerPanel   =  {	0,7*scaledTileSize, WindowSize.x, 7*scaledTileSize };
+	Rect UpperPanel   =  {	0, 0, WindowSize.x, WindowSize.y / 2 };
+	Rect LowerPanel   =  {	0,WindowSize.y / 2, WindowSize.x, WindowSize.y / 2 };
 
 	Point mouseposition		= {0,0};
 	Point selectedtile		= {0, LowerPanel.y};
