@@ -1,8 +1,8 @@
 #include "examplegame.h"
 
-#include <imgui.h>
-#include <imgui/imgui_impl_sdl2.h>
-#include <imgui/imgui_impl_sdlrenderer2.h>
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 
 void IntroState::Init()
 {
@@ -355,7 +355,8 @@ void IntroState::RenderGUI()
 		ImGui::Render();
 		SDL_SetRenderDrawColor(render, static_cast <u8>(0.45f * 255), static_cast <u8>(0.55f * 255), static_cast <u8>(0.60f * 255), static_cast <u8>(1.00f * 255));
 
-		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), render);
+		//ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), render);
+		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
 	}
 #endif

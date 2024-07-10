@@ -1,5 +1,5 @@
 #include "examplegame.h"
-#include "imgui/imgui.h"
+#include <imgui.h>
 
 ExampleGame::ExampleGame()
 	: Game( "BZ_tilemap_editor", WindowSize, true )

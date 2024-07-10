@@ -1,5 +1,5 @@
 {
-  "name" : "sdl-basegame",
+  "name" : "sdl-tileeditor",
   "version-string" : "1.0.0",
   "builtin-baseline" : "1e334d770ac71a89d1c36d51019e60dd08b68f76",
   "dependencies" : [ {
@@ -30,10 +30,8 @@
     "name" : "nlohmann-json",
     "version>=" : "3.11.3"
   }, {
-    "name" : "doctest",
-    "version>=" : "2.4.11"
-  }, {
     "name" : "imgui",
-    "version>=" : "1.90.6"
-  } ]
+    "features": [ "sdl2-binding", "sdl2-renderer-binding" ]
+  }
+   ]
 }

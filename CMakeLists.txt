@@ -91,27 +91,7 @@ include( ${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake )
 
 file( LOCK "${VCPKG_DIR}.lock" RELEASE )
 
-# ImGui einbinden
-set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/imgui")
-set(IMGUI_SOURCES
-        ${IMGUI_DIR}/imgui.cpp
-        ${IMGUI_DIR}/imgui_draw.cpp
-        ${IMGUI_DIR}/imgui_tables.cpp
-     #   ${IMGUI_DIR}/imgui_demo.cpp
-        ${IMGUI_DIR}/imgui_widgets.cpp
-        ${IMGUI_DIR}/imgui_impl_sdl2.cpp
-        ${IMGUI_DIR}/imgui_impl_sdlrenderer2.cpp
-        ${IMGUI_DIR}/imgui_impl_sdlrenderer2.h
-        ${IMGUI_DIR}/imgui_impl_sdl2.h
-        ${IMGUI_DIR}/imgui.h
-      #  ${IMGUI_DIR}/imconfig.h
-       # ${IMGUI_DIR}/imgui_internal.h
-       # ${IMGUI_DIR}/imstb_rectpack.h
-       # ${IMGUI_DIR}/imstb_textedit.h
-       # ${IMGUI_DIR}/imstb_truetype.h
-)
 
-include_directories(${IMGUI_DIR})
 
 find_package( SDL2       CONFIG REQUIRED )
 find_package( SDL2_ttf   CONFIG REQUIRED )
@@ -121,8 +101,7 @@ find_package( SDL2_net   CONFIG REQUIRED )
 find_package( fmt        CONFIG REQUIRED )
 find_package( unofficial-nativefiledialog CONFIG REQUIRED )
 find_package( nlohmann_json CONFIG REQUIRED )
-# Prepare doctest for other targets to use
-find_package(doctest CONFIG REQUIRED)
+find_package( imgui      CONFIG REQUIRED )
 
 
 # Why does MSVC exist, but not CLANG or GCC?
@@ -186,7 +165,7 @@ add_executable( sdl_tileeditor
         src/example/examplegame.cpp
         src/example/introstate.cpp
         src/tilemap.h
-        ${IMGUI_SOURCES}
+        #${IMGUI_SOURCES}
 )
 
 target_include_directories( sdl_tileeditor
@@ -207,7 +186,8 @@ target_link_libraries( sdl_tileeditor
         $<IF:${FMT_HEADER_ONLY},                        fmt::fmt-header-only,   fmt::fmt>
         $<TARGET_NAME_IF_EXISTS:unofficial::nativefiledialog::nfd>
         $<TARGET_NAME_IF_EXISTS:OpenMP::OpenMP_CXX>
-        nlohmann_json::nlohmann_json
+        $<TARGET_NAME_IF_EXISTS:imgui::imgui>
+        $<TARGET_NAME_IF_EXISTS:nlohmann_json::nlohmann_json>
 
         )
 
