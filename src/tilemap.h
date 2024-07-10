@@ -80,7 +80,6 @@ inline void readJson(const string& path , MapHeader& header, MapData& data, Rend
 
 inline void writeJson(const string& path , MapHeader& header, MapData& data)
 {
-	// serialize to json
 	json dataJson{
 			{"tileSetPaths", header.tileSetPaths},
 			{"rows", header.rows},

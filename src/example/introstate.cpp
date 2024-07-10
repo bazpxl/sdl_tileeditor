@@ -1,21 +1,11 @@
-
-
 #include "examplegame.h"
 
 #include <imgui.h>
-#include <../imgui/imgui_impl_sdl2.h>
-#include <../imgui/imgui_impl_sdlrenderer2.h>
+#include <imgui/imgui_impl_sdl2.h>
+#include <imgui/imgui_impl_sdlrenderer2.h>
 
 void IntroState::Init()
 {
-	if( !pfont )
-	{
-		pfont = TTF_OpenFont( BasePath "asset/font/RobotoSlab-Bold.ttf", 24 );
-		TTF_SetFontHinting( pfont, TTF_HINTING_LIGHT );
-		if( !pfont )
-			print( stderr, "TTF_OpenFont failed: {}\n", TTF_GetError() );
-	}
-
 	gui_texture = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png");
 
 	OpenFileDialog();
@@ -48,19 +38,12 @@ void IntroState::SaveFileDialog()
 
 	if ( result == NFD_OKAY )
 	{
-		DebugOnly
-		(
-			print("Save file to: {}", outPath);
-		)
 		writeJson(outPath,m_header,m_data);
 		free(outPath);
 	}
 	else if ( result == NFD_CANCEL )
 	{
-		DebugOnly
-		(
-			println("Canceled file saving");
-		)
+		println("Canceled by user.");
 	}
 	else
 	{
@@ -114,52 +97,40 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 #endif
 				const Keysym & what_key = event.key.keysym;
 
-				if( what_key.scancode == SDL_SCANCODE_F5 && event.key.repeat == 0 )
-				{
+				if( what_key.scancode == SDL_SCANCODE_F5 && event.key.repeat == 0 ){
 					SaveFileDialog();
 				}
-				else if(what_key.scancode == SDL_SCANCODE_UP)
-				{
-					if(camera_map.y > CameraSpeed)
-					{
+				else if(what_key.scancode == SDL_SCANCODE_UP){
+					if(camera_map.y > CameraSpeed){
 						camera_map.y -= CameraSpeed;
 					}
 				}
-				else if(what_key.scancode == SDL_SCANCODE_DOWN)
-				{
+				else if(what_key.scancode == SDL_SCANCODE_DOWN){
 					if(camera_map.y < WindowSize.y-CameraSpeed)
 					{
 						camera_map.y += CameraSpeed;
 					}
 
 				}
-				else if(what_key.scancode == SDL_SCANCODE_LEFT)
-				{
+				else if(what_key.scancode == SDL_SCANCODE_LEFT){
 					if(camera_map.x > CameraSpeed)
 					{
 						camera_map.x -= CameraSpeed;
 					}
 				}
-				else if(what_key.scancode == SDL_SCANCODE_RIGHT)
-				{
-					if(camera_map.x > WindowSize.x-CameraSpeed)
-					{
+				else if(what_key.scancode == SDL_SCANCODE_RIGHT){
+					if(camera_map.x > WindowSize.x-CameraSpeed){
 						camera_map.x -= CameraSpeed;
 					}
 				}
-
-				else if( what_key.scancode == SDL_SCANCODE_F2 )
-				{
-					if(isAtlasVisible())
-					{
+				else if( what_key.scancode == SDL_SCANCODE_F2 ){
+					if(isAtlasVisible()){
 						atlas_open = false;
-					}else
-					{
+					}else{
 						atlas_open = true;
 					}
 				}
-				else if( what_key.scancode == SDL_SCANCODE_ESCAPE )
-				{
+				else if( what_key.scancode == SDL_SCANCODE_ESCAPE ){
 					game.SetNextState( 0 );
 				}
 				break;
@@ -218,7 +189,6 @@ void IntroState::Update( const u32 frame, const u32 totalMSec, const float delta
 
 void IntroState::Render( const u32 frame, const u32 totalMSec, const float deltaT )
 {
-
 	for(const auto & lay : m_data.tiles)
 	{
 		for(int tile = 0; tile < lay.size(); tile++)

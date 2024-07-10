@@ -125,8 +125,6 @@ find_package( nlohmann_json CONFIG REQUIRED )
 find_package(doctest CONFIG REQUIRED)
 
 
-
-
 # Why does MSVC exist, but not CLANG or GCC?
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
     set( CLANG 1 )
@@ -183,15 +181,12 @@ add_executable( sdl_tileeditor
         src/gamebase.h
         src/gamebase.cpp
         src/recthelper.h
-
         src/example/main.cpp
         src/example/examplegame.h
         src/example/examplegame.cpp
         src/example/introstate.cpp
         src/tilemap.h
-        #src/tests/MapTests.cpp
         ${IMGUI_SOURCES}
-
 )
 
 target_include_directories( sdl_tileeditor

@@ -24,18 +24,15 @@ class IntroState : public GameState
 {
 protected:
 
+	Array<Point, 10> tset_size_array{{0,0}};		// width/height of the different assets/tilesets
 	SharedPtr<Texture> gui_texture = nullptr;
 
-	MapHeader m_header;
-	MapData m_data;
-
-	Font    * pfont			= nullptr;
-
-	Array<Point, 10> tset_size_array{{0,0}};		// width/height of the different assets/tilesets
+	MapHeader m_header{};
+	MapData m_data{};
 
 	u8 zoom					= 2;
 	const u16 scaledTileSize = zoom * TileSize;
-	Rect camera_map		= {0,0,WindowSize.x,7*scaledTileSize};
+	Rect camera_map		= {0,0,WindowSize.x,WindowSize.x / 2};
 
 	Rect UpperPanel   =  {	0, 0, WindowSize.x, WindowSize.y / 2 };
 	Rect LowerPanel   =  {	0,WindowSize.y / 2, WindowSize.x, WindowSize.y / 2 };
@@ -47,11 +44,10 @@ protected:
 	u8 tileset_id			= 0;
 	bool atlas_open			= true;
 
-
-
 	[[nodiscard]] bool isAtlasVisible() const { return atlas_open;	};
 
 public:
+
 	// ctor
 	using GameState::GameState;
 
