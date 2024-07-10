@@ -21,7 +21,7 @@ public:
 class IntroState : public GameState
 {
 protected:
-	// width/height of the different assets/tilesets
+	// width/height from tilesets
 	Array<Point, 10> tset_size_array_{{0,0}};
 
 	SharedPtr<Texture> gui_texture_ = nullptr;
@@ -54,10 +54,10 @@ public:
 	void UnInit() override;
 
 	void OpenFileDialog();
-	void readJson(const string& path);
+	void ReadJSON(const string& path);
 
 	void SaveFileDialog();
-	void writeJson(const string& path);
+	void WriteJSON(const string& path);
 
 	void Events( const u32 frame, const u32 totalMSec, const float deltaT ) override;
 	void Update( const u32 frame, const u32 totalMSec, const float deltaT ) override;
