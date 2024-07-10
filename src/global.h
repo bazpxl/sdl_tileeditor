@@ -84,7 +84,7 @@ namespace BzlGame
 
 	constexpr u16 TileSize		=	32;
 	constexpr Point WindowSize	=  {	1600, 900	};
-	constexpr Rect UpperPanel   =  {	0, 0, WindowSize.x, 13*TileSize };
+
 
 
 	struct bzDeleter{

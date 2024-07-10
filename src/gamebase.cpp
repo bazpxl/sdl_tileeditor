@@ -84,8 +84,10 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 	ImGui::StyleColorsLight();
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForSDLRenderer(imgui_window.get(), imgui_render.get());
-	ImGui_ImplSDLRenderer2_Init(imgui_render.get());
+	ImGui_ImplSDL2_InitForSDLRenderer(window, render);
+	ImGui_ImplSDLRenderer2_Init(render);
+	//ImGui_ImplSDL2_InitForSDLRenderer(imgui_window.get(), imgui_render.get());
+	//ImGui_ImplSDLRenderer2_Init(imgui_render.get());
 
 #endif
 
@@ -179,29 +181,6 @@ int Game::Run()
 		currentState->Events( frame, totalMSec, deltaTF );
 
 		currentState->Update( frame, totalMSec, deltaTF );
-
-// #ifdef IMGUI
-// 		if(imgui_window_active)
-// 		{
-// 			// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-// 			ImGui::Begin("ImGUI window", &imgui_window_active);
-// 			//ImGui::ShowDemoWindow();
-// 			if (ImGui::Button("Close Me"))
-// 			{
-// 				imgui_window_active = false;
-// 				SDL_RenderClear(imgui_render.get());
-// 				SDL_HideWindow(imgui_window.get());
-//
-// 			}
-// 			ImGui::End();
-// 			ImGui::Render();
-// 			SDL_SetRenderDrawColor(render, (Uint8)(0.45f * 255), (Uint8)(0.55f * 255), (Uint8)(0.60f * 255), (Uint8)(1.00f * 255));
-// 			SDL_RenderClear(imgui_render.get());
-// 			ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), imgui_render.get());
-// 			SDL_RenderPresent( imgui_render.get() );
-//
-// 		}
-// #endif
 
 		currentState->Render( frame, totalMSec, deltaTFNeeded );
 		SDL_RenderPresent( render );
