@@ -82,7 +82,6 @@ namespace BzlGame
 	//using std::cout, std::cin, std::cerr, std::endl;
 	using fmt::print, fmt::println, fmt::format;
 
-	constexpr u16 TileSize		=	32;
 	constexpr Point WindowSize	=  {	1600, 900	};
 
 	struct bzDeleter{

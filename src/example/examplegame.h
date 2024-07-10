@@ -1,11 +1,9 @@
 #pragma once
 
 #include <global.h>
-
 #include <gamebase.h>
-#include "recthelper.h"
 #include <tilemap.h>
-
+#include "nlohmann/json.hpp"
 
 class ExampleGame;
 class IntroState;
@@ -23,39 +21,43 @@ public:
 class IntroState : public GameState
 {
 protected:
+	// width/height of the different assets/tilesets
+	Array<Point, 10> tset_size_array_{{0,0}};
 
-	Array<Point, 10> tset_size_array{{0,0}};		// width/height of the different assets/tilesets
-	SharedPtr<Texture> gui_texture = nullptr;
+	SharedPtr<Texture> gui_texture_ = nullptr;
 
-	MapHeader m_header{};
-	MapData m_data{};
+	MapHeader map_header_{};
+	MapData map_data_{};
 
-	u8 zoom					= 2;
-	const u16 scaledTileSize = zoom * TileSize;
-	Rect camera_map		= {0,0,WindowSize.x,WindowSize.x / 2};
+	u8 zoom_					= 2;
+	const u16 scaled_size_		= zoom_ * TileSize;
+	Rect camera_map_			= {0,0,WindowSize.x,WindowSize.x / 2};
 
-	Rect UpperPanel   =  {	0, 0, WindowSize.x, WindowSize.y / 2 };
-	Rect LowerPanel   =  {	0,WindowSize.y / 2, WindowSize.x, WindowSize.y / 2 };
+	Rect upper_panel_		    =  {	0, 0, WindowSize.x, WindowSize.y / 2 };
+	Rect lower_panel_			=  {	0,WindowSize.y / 2, WindowSize.x, WindowSize.y / 2 };
 
-	Point mouseposition		= {0,0};
-	Point selectedtile		= {0, LowerPanel.y};
+	Point mousepos_				= {0,0};
+	Point selected_pos_			= {0, lower_panel_.y};
 
-	u8 active_layer_id		= LayerNumb;
-	u8 tileset_id			= 0;
-	bool atlas_open			= true;
+	u8 layer_id_				= LayerNumb;
+	u8 tileset_id_				= 0;
 
-	[[nodiscard]] bool isAtlasVisible() const { return atlas_open;	};
+	bool atlas_open_			= true;
 
 public:
-
 	// ctor
 	using GameState::GameState;
+
+	[[nodiscard]] bool isAtlasVisible() const { return atlas_open_;	};
 
 	void Init() override;
 	void UnInit() override;
 
-	void SaveFileDialog();
 	void OpenFileDialog();
+	void readJson(const string& path);
+
+	void SaveFileDialog();
+	void writeJson(const string& path);
 
 	void Events( const u32 frame, const u32 totalMSec, const float deltaT ) override;
 	void Update( const u32 frame, const u32 totalMSec, const float deltaT ) override;

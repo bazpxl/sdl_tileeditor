@@ -2,7 +2,6 @@
 
 #include <global.h>
 
-struct ImGuiIO;
 using namespace BzlGame;
 
 class Game;
