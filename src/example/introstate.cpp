@@ -31,7 +31,7 @@ void IntroState::UnInit()
 	*/
 }
 
-void IntroState::readJson(const string & path)
+void IntroState::ReadJSON(const string & path)
 {
 	std::ifstream file(path);
 	if(!file.is_open())[[unlikely]]
@@ -61,7 +61,7 @@ void IntroState::readJson(const string & path)
 	file.close();
 }
 
-void IntroState::writeJson(const string & path)
+void IntroState::WriteJSON(const string & path)
 {
 	json dataJson{
 		{"asset_paths", map_header_.asset_paths},
@@ -89,7 +89,7 @@ void IntroState::SaveFileDialog()
 
 	if ( result == NFD_OKAY )
 	{
-		writeJson(outPath);
+		WriteJSON(outPath);
 		free(outPath);
 	}
 	else if ( result == NFD_CANCEL )
@@ -109,7 +109,7 @@ void IntroState::OpenFileDialog()
 
 	if ( result == NFD_OKAY )
 	{
-		readJson(outPath);
+		ReadJSON(outPath);
 		free(outPath);
 	}
 	else if ( result == NFD_CANCEL )
@@ -120,7 +120,7 @@ void IntroState::OpenFileDialog()
 	else
 	{
 		println("Error: {}", NFD_GetError() );
-		readJson( BasePath"asset/map.json" );
+		ReadJSON( BasePath"asset/map.json" );
 	}
 }
 
