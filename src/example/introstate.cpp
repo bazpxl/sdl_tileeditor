@@ -333,7 +333,7 @@ void IntroState::RenderGUI()
 
 		ImGui::End();
 		ImGui::Render();
-		SDL_SetRenderDrawColor(render, (Uint8)(0.45f * 255), (Uint8)(0.55f * 255), (Uint8)(0.60f * 255), (Uint8)(1.00f * 255));
+		SDL_SetRenderDrawColor(render, static_cast <u8>(0.45f * 255), static_cast <u8>(0.55f * 255), static_cast <u8>(0.60f * 255), static_cast <u8>(1.00f * 255));
 
 		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), render);
 
