@@ -25,23 +25,8 @@ protected:
 	Point windowSize {WindowSize};
 	bool isRunning = true;
 
-
-
 public:
 #ifdef IMGUI
-	SharedPtr<Window> imgui_window = CreateSharedWindow(
-		"gui",
-		0,
-		50,
-		400,
-		250,
-		SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN );
-
-	SharedPtr<Renderer> imgui_render = CreateSharedRenderer(
-		imgui_window,
-		-1,
-		SDL_RENDERER_ACCELERATED |SDL_RENDERER_PRESENTVSYNC );
-
 	bool imgui_window_active = true;
 #endif
 
