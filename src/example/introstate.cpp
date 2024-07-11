@@ -143,46 +143,9 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 #ifdef IMGUI
 					if( io.WantCaptureKeyboard ){	continue;	}
 #endif
-				const Keysym & what_key = event.key.keysym;
-
-				if( what_key.scancode == SDL_SCANCODE_F5 && event.key.repeat == 0 ){
-					SaveFileDialog();
+					InputKeyboard(event);
+					break;
 				}
-				else if(what_key.scancode == SDL_SCANCODE_UP){
-					if(camera_map_.y > CameraSpeed){
-						camera_map_.y -= CameraSpeed;
-					}
-				}
-				else if(what_key.scancode == SDL_SCANCODE_DOWN){
-					if(camera_map_.y < WindowSize.y-CameraSpeed)
-					{
-						camera_map_.y += CameraSpeed;
-					}
-
-				}
-				else if(what_key.scancode == SDL_SCANCODE_LEFT){
-					if(camera_map_.x > CameraSpeed)
-					{
-						camera_map_.x -= CameraSpeed;
-					}
-				}
-				else if(what_key.scancode == SDL_SCANCODE_RIGHT){
-					if(camera_map_.x > WindowSize.x-CameraSpeed){
-						camera_map_.x -= CameraSpeed;
-					}
-				}
-				else if( what_key.scancode == SDL_SCANCODE_F2 ){
-					if(isAtlasVisible()){
-						atlas_open_ = false;
-					}else{
-						atlas_open_ = true;
-					}
-				}
-				else if( what_key.scancode == SDL_SCANCODE_ESCAPE ){
-					game.SetNextState( 0 );
-				}
-				break;
-			}
 
 			case SDL_MOUSEMOTION:
 				{
@@ -232,6 +195,46 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 			default:
 				break;
 		}}}
+
+void IntroState::InputKeyboard(SDL_Event event)
+{
+	const Keysym & what_key = event.key.keysym;
+	if( what_key.scancode == SDL_SCANCODE_F5 && event.key.repeat == 0 ){
+		SaveFileDialog();
+	}
+	else if(what_key.scancode == SDL_SCANCODE_UP){
+		if(camera_map_.y > CameraSpeed){
+			camera_map_.y -= CameraSpeed;
+		}
+	}
+	else if(what_key.scancode == SDL_SCANCODE_DOWN){
+		if(camera_map_.y < WindowSize.y-CameraSpeed)
+		{
+			camera_map_.y += CameraSpeed;
+		}
+	}
+	else if(what_key.scancode == SDL_SCANCODE_LEFT){
+		if(camera_map_.x > CameraSpeed)
+		{
+			camera_map_.x -= CameraSpeed;
+		}
+	}
+	else if(what_key.scancode == SDL_SCANCODE_RIGHT){
+		if(camera_map_.x > WindowSize.x-CameraSpeed){
+			camera_map_.x -= CameraSpeed;
+		}
+	}
+	else if( what_key.scancode == SDL_SCANCODE_F2 ){
+		if(isAtlasVisible()){
+			atlas_open_ = false;
+		}else{
+			atlas_open_ = true;
+		}
+	}
+	else if( what_key.scancode == SDL_SCANCODE_ESCAPE ){
+		game.SetNextState( 0 );
+	}
+}
 
 void IntroState::Update( const u32 frame, const u32 totalMSec, const float deltaT )
 {

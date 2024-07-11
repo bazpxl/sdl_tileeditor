@@ -49,12 +49,12 @@ public:
 	using GameState::GameState;
 
 	[[nodiscard]] bool isAtlasVisible() const { return atlas_open_;	};
-
+	void InputKeyboard(SDL_Event event);
 	void Init() override;
 	void UnInit() override;
 
 	void OpenFileDialog();
-	void ReadJSON(const string& path);
+	void ReadJSON(const string& path) ;
 
 	void SaveFileDialog();
 	void WriteJSON(const string& path);
