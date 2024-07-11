@@ -77,7 +77,7 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NoKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsLight();

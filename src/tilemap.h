@@ -1,7 +1,3 @@
-//
-// Created by bzl on 21.06.2024.
-//
-
 #ifndef TILEMAP_H
 #define TILEMAP_H
 
@@ -40,6 +36,8 @@ struct MapData
 	Vector<SharedPtr<Texture>> tileSets;
 	Vector<Vector<Tile>> tiles {LayerNumb-1, Vector<Tile>(MapRows*MapCols,{EmptyTileVal,0})};
 };
+
+
 
 //------------------------------------------------------------------------
 

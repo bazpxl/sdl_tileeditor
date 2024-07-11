@@ -1,5 +1,5 @@
 #include "examplegame.h"
-#include "imgui/imgui.h"
+#include <imgui.h>
 
 ExampleGame::ExampleGame()
 	: Game( "BZ_tilemap_editor", WindowSize, true )
@@ -41,11 +41,7 @@ bool ExampleGame::HandleEvent( const Event event )
 				SetNextState( 0 );
 				return true;
 			}
-			if( what_key.scancode == SDL_SCANCODE_2 )
-			{
-				SetNextState( 1 );
-				return true;
-			}
+
 			break;
 		}
 

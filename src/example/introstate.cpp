@@ -1,8 +1,10 @@
 #include "examplegame.h"
 
 #include <imgui.h>
-#include <imgui/imgui_impl_sdl2.h>
-#include <imgui/imgui_impl_sdlrenderer2.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdlrenderer2.h>
+
+
 
 void IntroState::Init()
 {
@@ -40,21 +42,18 @@ void IntroState::ReadJSON(const string & path)
 	}
 	json j = json::parse(file);
 
-	map_header_.asset_paths =	j["asset_paths"].template get<Vector<string>>();
+	map_header_.asset_paths		=	j["asset_paths"].template get<Vector<string>>();
 	map_header_.rows			=	j["rows"].template get<u16>();
 	map_header_.cols			=	j["cols"].template get<u16>();
 	map_header_.tilesize		=	j["tilesize"].template get<u8>();
-	map_header_.layer_numb	=	j["layer_numb"].template get<u8>();
+	map_header_.layer_numb		=	j["layer_numb"].template get<u8>();
 
-	map_data_.tiles			=	j["tiles"].template get<Vector<Vector<Tile>>>();
+	map_data_.tiles				=	j["tiles"].template get<Vector<Vector<Tile>>>();
 
 	for(auto & vec : map_header_.asset_paths)
 	{
 		string tmpstr = BasePath;
 		tmpstr.append(vec);
-		DebugOnly(
-			print("{}",tmpstr);
-		)
 		map_data_.tileSets.push_back(CreateSharedTexture(render, tmpstr.c_str()));
 
 	}
@@ -79,7 +78,7 @@ void IntroState::WriteJSON(const string & path)
 	}
 	file <<  dataJson << std::endl;
 	file.close();
-	dataJson.clear();
+	
 }
 
 void IntroState::SaveFileDialog()
@@ -117,10 +116,8 @@ void IntroState::OpenFileDialog()
 		println("Canceled by user. Load standard-map");
 		//readJson( BasePath"asset/map.json" );
 	}
-	else
-	{
+	else{
 		println("Error: {}", NFD_GetError() );
-		ReadJSON( BasePath"asset/map.json" );
 	}
 }
 
@@ -142,7 +139,7 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 		switch( event.type )
 		{
 			case SDL_KEYDOWN:
-			{
+				{
 #ifdef IMGUI
 					if( io.WantCaptureKeyboard ){	continue;	}
 #endif
@@ -188,17 +185,20 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 			}
 
 			case SDL_MOUSEMOTION:
+				{
 #ifdef IMGUI
-				if( io.WantCaptureMouse ){	continue;	}
+					if( io.WantCaptureMouse ){	continue;	}
 #endif
-				/// Update current mouse position
-				mousepos_.x  = event.motion.x / (scaled_size_);
-				mousepos_.y  = event.motion.y / (scaled_size_);
-			break;
+					/// Update current mouse position
+					mousepos_.x  = event.motion.x / (scaled_size_);
+					mousepos_.y  = event.motion.y / (scaled_size_);
+					break;
+				}
 
 			case SDL_MOUSEBUTTONDOWN:
+				{
 #ifdef IMGUI
-				if( io.WantCaptureMouse ){	continue;	}
+					if( io.WantCaptureMouse ){	continue;	}
 #endif
 
 					if(event.button.button == SDL_BUTTON_LEFT)
@@ -227,7 +227,8 @@ void IntroState::Events( const u32 frame, const u32 totalMSec, const float delta
 							map_data_.tiles[layer_id_][dst_pos].type = EmptyTileVal;
 						}
 					}
-				break;
+					break;
+				}
 			default:
 				break;
 		}}}
@@ -355,7 +356,7 @@ void IntroState::RenderGUI()
 		ImGui::Render();
 		SDL_SetRenderDrawColor(render, static_cast <u8>(0.45f * 255), static_cast <u8>(0.55f * 255), static_cast <u8>(0.60f * 255), static_cast <u8>(1.00f * 255));
 
-		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), render);
+		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 
 	}
 #endif
