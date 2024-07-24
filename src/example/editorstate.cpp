@@ -49,9 +49,9 @@ void EditorState::MoveCamera(Direction dir)
 			}
 			break;
 		case Direction::Right:
-			if(camera_map_.x > WindowSize.x-CameraSpeed)
+			if(camera_map_.x < WindowSize.x-CameraSpeed)
 			{
-				camera_map_.x -= CameraSpeed;
+				camera_map_.x += CameraSpeed;
 			}
 			break;
 		default:
@@ -107,8 +107,6 @@ void EditorState::WriteJSON(const string & path)
 	file.close();
 
 }
-
-
 
 void EditorState::SaveFileDialog()
 {
@@ -282,7 +280,7 @@ void EditorState::Render( const u32 frame, const u32 totalMSec, const float delt
 
 }
 
-void EditorState::RenderMap() {
+void EditorState::RenderMap() const {
 	for(const auto & lay : map_data_.tiles)
 	{
 		for(int tile = 0; tile < lay.size(); tile++)
