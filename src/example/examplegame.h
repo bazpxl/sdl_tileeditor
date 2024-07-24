@@ -76,7 +76,7 @@ public:
 	void ReadJSON(const string& path) ;
 	void WriteJSON(const string& path);
 
-	void RenderMap();
+	void RenderMap() const;
 	void RenderAtlas() const;
 	void RenderGUI();
 
