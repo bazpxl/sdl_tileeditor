@@ -59,36 +59,6 @@ void EditorState::MoveCamera(Direction dir)
 	}
 }
 
-// void EditorState::CalculateSelectedTiles() {
-// 	// Berechne die Start- und Endpunkte in Bezug auf die Tile-Koordinaten
-// 	SDL_Rect selectRect;
-// 	selectRect.x = std::min(multiselect_startpos_.x, multiselect_endpos_.x);
-// 	selectRect.y = std::min(multiselect_startpos_.y, multiselect_endpos_.y);
-// 	selectRect.w = std::abs(multiselect_endpos_.x * scaled_size_ - multiselect_startpos_.x * scaled_size_);
-// 	selectRect.h = std::abs(multiselect_endpos_.y * scaled_size_ - multiselect_startpos_.y * scaled_size_) - lower_panel_.y;
-//
-// 	println("x {}  y {}  w {}  h {}", selectRect.x, selectRect.y, selectRect.w, selectRect.h);
-//
-// 	int startX = selectRect.x * scaled_size_;
-// 	int startY = (selectRect.y *scaled_size_) - lower_panel_.y;
-// 	int endX = selectRect.w / scaled_size_;
-// 	int endY = selectRect.h / scaled_size_;
-//
-// 	// Iteriere durch alle relevanten Tiles und füge ihre Koordinaten zum Vektor hinzu
-// 	for (int y = startY; y <= endY; ++y) {
-// 		for (int x = startX; x <= endX; ++x) {
-// 			SDL_Point point = { x , y  };
-// 			println("x{} y{} ", point.x, point.y);
-// 			multiselect_points_.push_back(point);
-// 		}
-// 	}
-// 	println("------------");
-//
-// 	if(multiselect_points_.empty()) {
-// 		multiselect_points_.push_back({0, lower_panel_.y});
-// 	}
-// }
-
 void EditorState::ReadJSON(const string & path)
 {
 
@@ -171,7 +141,7 @@ void EditorState::OpenFileDialog()
 	else if ( result == NFD_CANCEL )
 	{
 		println("Canceled by user. Load standard-map");
-		//readJson( BasePath"asset/map.json" );
+		ReadJSON( BasePath"asset/map.json" );
 	}
 	else{
 		println("Error: {}", NFD_GetError() );
@@ -391,17 +361,17 @@ void EditorState::RenderGUI()
 	SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &mouse_dstRect);
 
 
-	if(mouseButtonPressed_){
-		// render selection square
-		SDL_Rect selectRect;
-		selectRect.x = std::min(multiselect_startpos_.x, multiselect_endpos_.x);
-		selectRect.y = std::min(multiselect_startpos_.y, multiselect_endpos_.y) + lower_panel_.y;
-		selectRect.w = std::abs(multiselect_endpos_.x - multiselect_startpos_.x);
-		selectRect.h = std::abs(multiselect_endpos_.y - multiselect_startpos_.y) - lower_panel_.y;
-
-		SDL_SetRenderDrawColor(render, 255, 255, 255, 255); // Weiß
-		SDL_RenderDrawRect(render, &selectRect);
-	}
+	// if(mouseButtonPressed_){
+	// 	// render selection square
+	// 	SDL_Rect selectRect;
+	// 	selectRect.x = std::min(multiselect_startpos_.x, multiselect_endpos_.x);
+	// 	selectRect.y = std::min(multiselect_startpos_.y, multiselect_endpos_.y) + lower_panel_.y;
+	// 	selectRect.w = std::abs(multiselect_endpos_.x - multiselect_startpos_.x);
+	// 	selectRect.h = std::abs(multiselect_endpos_.y - multiselect_startpos_.y) - lower_panel_.y;
+	//
+	// 	SDL_SetRenderDrawColor(render, 255, 255, 255, 255); // Weiß
+	// 	SDL_RenderDrawRect(render, &selectRect);
+	// }
 
 #ifdef IMGUI
 
