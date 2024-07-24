@@ -161,9 +161,8 @@ add_executable( sdl_tileeditor
         src/example/main.cpp
         src/example/examplegame.h
         src/example/examplegame.cpp
-        src/example/introstate.cpp
+        src/example/editorstate.cpp
         src/tilemap.h
-       # ${IMGUI_SOURCES}
 )
 
 target_include_directories( sdl_tileeditor

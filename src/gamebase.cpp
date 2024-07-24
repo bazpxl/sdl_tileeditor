@@ -39,7 +39,7 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 		exit( 5 );
 	}
 
-	SDL_WindowFlags flags = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	constexpr SDL_WindowFlags flags = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
 	window = SDL_CreateWindow(
 		windowTitle,
@@ -70,7 +70,7 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 	}
 
 	allStates.reserve( 10 );
-	std::fill( allStates.begin(), allStates.end(), nullptr );
+	std::ranges::fill(allStates, nullptr );
 
 #ifdef IMGUI
 	// Setup Dear ImGui context
@@ -116,9 +116,6 @@ Game::~Game()
 
 bool Game::HandleEvent( const Event event )
 {
-#ifdef IMGUI
-	const ImGuiIO & io = ImGui::GetIO();
-#endif
 	switch( event.type )
 	{
 		case SDL_QUIT:
@@ -128,14 +125,12 @@ bool Game::HandleEvent( const Event event )
 
 		case SDL_KEYDOWN:
 		{
-#ifdef IMGUI
-				if( io.WantCaptureKeyboard ){	return true;	}
-#endif
+
 			auto & key_event = event.key;
 			Keysym what_key = key_event.keysym;
 
-			if( (what_key.mod & KMOD_ALT) &&
-			    (what_key.scancode == SDL_SCANCODE_F4) )
+			if( what_key.mod & KMOD_ALT &&
+			    what_key.scancode == SDL_SCANCODE_F4 )
 			{
 				Event next_event = { .type = SDL_QUIT };
 				SDL_PushEvent( &next_event );
@@ -143,6 +138,8 @@ bool Game::HandleEvent( const Event event )
 			}
 			break;
 		}
+		default:
+			break;
 	}
 	return false;
 }
@@ -159,8 +156,8 @@ int Game::Run()
 	{
 		start = Clock::now();
 
-		const float deltaTF = std::chrono::duration<float>( deltaT ).count();
-		const float deltaTFNeeded = std::chrono::duration<float>( deltaTNeeded ).count();
+		const float deltaTF			= std::chrono::duration<float>( deltaT ).count();
+		const float deltaTFNeeded	= std::chrono::duration<float>( deltaTNeeded ).count();
 
 		OutputPerformanceInfo( start, deltaTNeeded );
 
@@ -214,20 +211,18 @@ void Game::ActivateNextState()
 	    && nextStateIdx != -1 )
 	{
 		// Load the state or die
-		if( nextStateIdx >= (int)allStates.size() || allStates[nextStateIdx] == nullptr )
+		if( nextStateIdx >= static_cast<int>(allStates.size()) || allStates[nextStateIdx] == nullptr )
 		{
 			print( stderr, "Activated out of range or nullptr state with the index: {}\n", nextStateIdx );
 			exit( 11 );
 		}
-		else
-		{
-			if( currentState != nullptr )
-				currentState->UnInit();
 
-			currentStateIdx = nextStateIdx;
-			currentState = allStates[currentStateIdx];
-			currentState->Init();
-		}
+		if( currentState != nullptr )
+			currentState->UnInit();
+
+		currentStateIdx = nextStateIdx;
+		currentState = allStates[currentStateIdx];
+		currentState->Init();
 	}
 }
 
