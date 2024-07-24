@@ -2,6 +2,8 @@
 
 Tile editor based on sdl_basegame from sor [SDL_Basegame](https://github.com/sor/sdl_basegame)
 
+
+
 ## debug-shortcuts:
 
 F2          = hide/show tile atlas panel
@@ -12,5 +14,9 @@ Arrow keys  = move camera;
 
 Alt+F4      = quit programm
 
-
 ---
+
+## building the project
+
+This project uses CMake for building and vcpkg for managing dependencies.
+
