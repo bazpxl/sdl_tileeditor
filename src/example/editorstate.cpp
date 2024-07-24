@@ -105,8 +105,10 @@ void EditorState::WriteJSON(const string & path)
 	}
 	file <<  dataJson << std::endl;
 	file.close();
-	
+
 }
+
+
 
 void EditorState::SaveFileDialog()
 {
@@ -271,6 +273,16 @@ void EditorState::Update( const u32 frame, const u32 totalMSec, const float delt
 
 void EditorState::Render( const u32 frame, const u32 totalMSec, const float deltaT )
 {
+	RenderMap();
+
+	if(atlas_open_){
+		RenderAtlas();
+	}
+	RenderGUI();
+
+}
+
+void EditorState::RenderMap() {
 	for(const auto & lay : map_data_.tiles)
 	{
 		for(int tile = 0; tile < lay.size(); tile++)
@@ -308,12 +320,6 @@ void EditorState::Render( const u32 frame, const u32 totalMSec, const float delt
 			}
 		}
 	}
-
-	if(atlas_open_){
-		RenderAtlas();
-	}
-	RenderGUI();
-
 }
 
 void EditorState::RenderAtlas() const
