@@ -18,7 +18,10 @@ public:
 	bool HandleEvent( const Event event ) override;
 };
 
-
+struct MultiSelectItem {
+	Point tileset_pos;
+	Point offset;
+};
 
 class EditorState : public GameState
 {
@@ -27,27 +30,30 @@ protected:
 	Array<Point, 10> tset_size_array_{{0,0}};
 
 	SharedPtr<Texture> gui_texture_ = nullptr;
-	Vector<Point> multiselect_points_;
+	Vector<MultiSelectItem> multiselect_points_;
+	Point select_point {0, 0};
 
 	MapHeader map_header_{};
 	MapData map_data_{};
 
-	u8 zoom_					=	2;
-	u16 scaled_size_			=	zoom_ * TileSize;
-	Rect camera_map_			=	{0,0,WindowSize.x,WindowSize.x / 2};
+	u8 zoom_						=	2;
+	u16 scaled_size_				=	zoom_ * TileSize;
+	Rect camera_map_				=	{0,0,WindowSize.x,WindowSize.x / 2};
 
-	Rect upper_panel_		    =	{0,0,WindowSize.x,WindowSize.y / 2};
-	Rect lower_panel_			=	{0,WindowSize.y / 2,WindowSize.x,WindowSize.y / 2	};
+	Rect upper_panel_				=	{0,0,WindowSize.x,WindowSize.y / 2};
+	Rect lower_panel_				=	{0,WindowSize.y / 2,WindowSize.x,WindowSize.y / 2	};
+
+	SDL_Rect multi_selection_rect_;
 
 	Point multiselect_startpos_		=	{ 0, WindowSize.y / 2};
 	Point multiselect_endpos_		=	{	0,	WindowSize.y / 2 };
 
-	Point mousepos_				=	{0,	0};
+	Point mousepos_					=	{0,	0};
 
-	u8 layer_id_				=	LayerNumb - 1;
-	u8 tileset_id_				=	0;
+	u8 layer_id_					=	LayerNumb - 1;
+	u8 tileset_id_					=	0;
 
-	bool atlas_open_			=	true;
+	bool atlas_open_				=	true;
 	bool mouseButtonPressed_		=	false;
 
 
@@ -78,6 +84,7 @@ public:
 
 	void RenderMap() const;
 	void RenderAtlas() const;
+	void RenderMouse();
 	void RenderGUI();
 
 	void Init()																override;
