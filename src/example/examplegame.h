@@ -30,8 +30,8 @@ protected:
 	Array<Point, 10> tset_size_array_{{0,0}};
 
 	SharedPtr<Texture> gui_texture_ = nullptr;
-	Vector<MultiSelectItem> multiselect_points_;
-	Point select_point {0, 0};
+	Vector<MultiSelectItem> multiselect_Items;
+	Point singleselect_point {0, 0};
 
 	MapHeader map_header_{};
 	MapData map_data_{};
@@ -40,15 +40,16 @@ protected:
 	u16 scaled_size_				=	zoom_ * TileSize;
 	Rect camera_map_				=	{0,0,WindowSize.x,WindowSize.x / 2};
 
+	// rendering borders map / atlas
 	Rect upper_panel_				=	{0,0,WindowSize.x,WindowSize.y / 2};
 	Rect lower_panel_				=	{0,WindowSize.y / 2,WindowSize.x,WindowSize.y / 2	};
 
-	SDL_Rect multi_selection_rect_;
+	Rect multi_selection_rect_;
 
 	Point multiselect_startpos_		=	{ 0, WindowSize.y / 2};
 	Point multiselect_endpos_		=	{	0,	WindowSize.y / 2 };
 
-	Point mousepos_					=	{0,	0};
+	Point fixmousepos_					=	{0,	0};
 
 	u8 layer_id_					=	LayerNumb - 1;
 	u8 tileset_id_					=	0;
@@ -65,17 +66,11 @@ protected:
 		Right
 	};
 
-public:
-	// ctor
-	using GameState::GameState;
-
 	[[nodiscard]] bool isAtlasVisible() const { return atlas_open_;	}
 
 	void InputKeyboard(const SDL_Event & event);
 
 	void MoveCamera(const Direction dir);
-
-	void CalculateSelectedTiles();
 
 	void OpenFileDialog();
 	void SaveFileDialog();
@@ -86,6 +81,10 @@ public:
 	void RenderAtlas() const;
 	void RenderMouse();
 	void RenderGUI();
+
+public:
+	// ctor
+	using GameState::GameState;
 
 	void Init()																override;
 	void UnInit()															override;

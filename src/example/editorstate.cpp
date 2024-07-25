@@ -181,8 +181,8 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 						multiselect_endpos_.y = event.motion.y;
 					}
 					/// Update current mouse position
-					mousepos_.x  = event.motion.x / scaled_size_;
-					mousepos_.y  = event.motion.y / scaled_size_;
+					fixmousepos_.x  = event.motion.x / scaled_size_;
+					fixmousepos_.y  = event.motion.y / scaled_size_;
 					break;
 				}
 			case SDL_MOUSEBUTTONDOWN:
@@ -191,7 +191,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 					{
 
 						// if mouse is inside LowerPanel, select tile on current mouse pos
-						if((mousepos_.y * scaled_size_  >= lower_panel_.y)	&&	isAtlasVisible())
+						if((fixmousepos_.y * scaled_size_  >= lower_panel_.y)	&&	isAtlasVisible())
 							{
 								// check if ctrl is pressed for multiselect-start
 								const Uint8* keystate = SDL_GetKeyboardState(nullptr);
@@ -201,27 +201,27 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 									multiselect_startpos_ = {event.button.x, event.button.y};
 								}else
 								{
-									select_point.x = mousepos_.x;
-									select_point.y = mousepos_.y - lower_panel_.y / scaled_size_;
-									multiselect_points_.clear();
+									singleselect_point.x = fixmousepos_.x;
+									singleselect_point.y = fixmousepos_.y - lower_panel_.y / scaled_size_;
+									multiselect_Items.clear();
 								}
 
 							}
 
 						// if mouse is NOT in LowerPanel, place last Selected Tile on current Position.
-						if((mousepos_.y * scaled_size_ < lower_panel_.y)	||	!isAtlasVisible()	)
+						if((fixmousepos_.y * scaled_size_ < lower_panel_.y)	||	!isAtlasVisible()	)
 							{
-								if(multiselect_points_.empty())
+								if(multiselect_Items.empty())
 								{
-									const int selected_type = static_cast<u16>(pointToInt(select_point, tset_size_array_[tileset_id_].x  / TileSize));
-									const int dst_pos = pointToInt(mousepos_, map_header_.cols);
+									const int selected_type = static_cast<u16>(pointToInt(singleselect_point, tset_size_array_[tileset_id_].x  / TileSize));
+									const int dst_pos = pointToInt(fixmousepos_, map_header_.cols);
 									map_data_.tiles[layer_id_][dst_pos].type = selected_type;
 									map_data_.tiles[layer_id_][dst_pos].asset_id = tileset_id_;
 								}else {
-									for(auto & multiItem : multiselect_points_)
+									for(auto & multiItem : multiselect_Items)
 									{
 										const int selected_type = static_cast<u16>(pointToInt(multiItem.tileset_pos, tset_size_array_[tileset_id_].x  / TileSize));
-										Point pos = {mousepos_.x + multiItem.offset.x, mousepos_.y + multiItem.offset.y};
+										Point pos = {fixmousepos_.x + multiItem.offset.x, fixmousepos_.y + multiItem.offset.y};
 										const int dst_pos = pointToInt(pos, map_header_.cols);
 										map_data_.tiles[layer_id_][dst_pos].type = selected_type;
 										map_data_.tiles[layer_id_][dst_pos].asset_id = tileset_id_;
@@ -231,9 +231,9 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 					}else if(event.button.button == SDL_BUTTON_RIGHT)
 					{
 						// if mouse is in valid Panel, click to remove tile type and replace it with EmptyTileVal.
-						if((mousepos_.y * scaled_size_ < lower_panel_.y) || !isAtlasVisible()	)
+						if((fixmousepos_.y * scaled_size_ < lower_panel_.y) || !isAtlasVisible()	)
 						{
-							const int dst_pos = pointToInt(mousepos_, map_header_.cols);
+							const int dst_pos = pointToInt(fixmousepos_, map_header_.cols);
 							map_data_.tiles[layer_id_][dst_pos].type = EmptyTileVal;
 						}
 					}
@@ -250,14 +250,14 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 						const int endX = multi_selection_rect_.w;
 						const int endY = multi_selection_rect_.h;
 
-						multiselect_points_.clear();
+						multiselect_Items.clear();
 						for(int x = startX; x <= endX; x++) {
 							for(int y = startY; y <= endY; y++) {
-								if(multiselect_points_.empty()) {
-									multiselect_points_.push_back({{x,y}, {0,0}});
+								if(multiselect_Items.empty()) {
+									multiselect_Items.push_back({{x,y}, {0,0}});
 								}
-								multiselect_points_.push_back({{x,y},{x-multiselect_points_[0].tileset_pos.x, y-multiselect_points_[0].tileset_pos.y}});
-								//println("x {} y {}, offsetx {} offsety {}",x,y, x-multiselect_points_[0].tileset_pos.x, y-multiselect_points_[0].tileset_pos.y);
+								multiselect_Items.push_back({{x,y},{x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y}});
+								//println("x {} y {}, offsetx {} offsety {}",x,y, x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y);
 							}
 						}
 
@@ -388,15 +388,15 @@ void EditorState::RenderAtlas() const
 
 			SDL_RenderCopy(render, map_data_.tileSets[tileset_id_].get(), &srcRect, &dstRect);
 
-
-			if(multiselect_points_.empty())
+			// check if multi or single selection
+			if(multiselect_Items.empty())
 			{
 				const Rect mouse_srcRect = {0,0,scaled_size_,scaled_size_};
-				const Rect dst_rect = {select_point.x * scaled_size_, select_point.y * scaled_size_ + lower_panel_.y, scaled_size_, scaled_size_};
+				const Rect dst_rect = {singleselect_point.x * scaled_size_, singleselect_point.y * scaled_size_ + lower_panel_.y, scaled_size_, scaled_size_};
 				SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &dst_rect );
 			}else
 			{
-				for(const auto & multiItem: multiselect_points_){
+				for(const auto & multiItem: multiselect_Items){
 					const Rect mouse_srcRect = {0,0,scaled_size_,scaled_size_};
 					const Rect dst_rect = {multiItem.tileset_pos.x * scaled_size_, multiItem.tileset_pos.y * scaled_size_ + lower_panel_.y, scaled_size_, scaled_size_};
 					SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &dst_rect );
@@ -412,8 +412,8 @@ void EditorState::RenderMouse() {
 	const Rect mouse_srcRect =	{0, 0, scaled_size_, scaled_size_	};
 	const Rect mouse_dstRect =
 	{
-		mousepos_.x * scaled_size_,
-		mousepos_.y * scaled_size_,
+		fixmousepos_.x * scaled_size_,
+		fixmousepos_.y * scaled_size_,
 		scaled_size_, scaled_size_
 	};
 	SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &mouse_dstRect);
