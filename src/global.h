@@ -31,6 +31,7 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
+#include <nlohmann/json_fwd.hpp>
 
 #define IMGUI true
 
@@ -67,6 +68,7 @@ namespace BzlGame
 	using Music     = Mix_Music;
 
 	using string = std::string;
+	using json = nlohmann::json;
 
 	using std::min;
 	using std::max;
