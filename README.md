@@ -1,6 +1,6 @@
 # sdl_tileeditor
 
-Tile editor based on sdl_basegame from sor [SDL_Basegame](https://github.com/sor/sdl_basegam
+Tile editor based on sdl_basegame from [SDL_Basegame](https://github.com/sor/sdl_basegame)
 
 ![Screenshot](asset/screenshoteditor.png "Screenshot SDL_Tileeditor")
 
