@@ -8,8 +8,6 @@ class ExampleGame;
 class EditorState;
 using namespace BzlGame;
 
-
-
 class ExampleGame final : public Game
 {
 public:
@@ -26,15 +24,10 @@ struct MultiSelectItem {
 class EditorState : public GameState
 {
 protected:
-	// width/height from tilesets
-	Array<Point, 10> tset_size_array_{{0,0}};
 
 	SharedPtr<Texture> gui_texture_ = nullptr;
 	Vector<MultiSelectItem> multiselect_Items;
 	Point singleselect_point {0, 0};
-
-	MapHeader map_header_{};
-	MapData map_data_{};
 
 	Map map_;
 
@@ -42,22 +35,22 @@ protected:
 	u16 scaled_size_				=	zoom_ * TileSize;
 	Rect camera_map_				=	{0,0,WindowSize.x,WindowSize.x / 2};
 
-	// rendering borders map / atlas
+	// rendering borders map/atlas
 	Rect upper_panel_				=	{0,0,WindowSize.x,WindowSize.y / 2};
 	Rect lower_panel_				=	{0,WindowSize.y / 2,WindowSize.x,WindowSize.y / 2	};
 
-	Rect multi_selection_rect_;
+	Rect multiselection_;
 
-	Point multiselect_startpos_		=	{ 0, WindowSize.y / 2};
-	Point multiselect_endpos_		=	{	0,	WindowSize.y / 2 };
+	Point mselect_startp_			=	{ 0, WindowSize.y / 2};
+	Point mselect_endp_				=	{	0,	WindowSize.y / 2 };
 
-	Point fixmousepos_					=	{0,	0};
+	Point fixmousepos_				=	{0,	0};
 
 	u8 layer_id_					=	LayerNumb - 1;
 	u8 tileset_id_					=	0;
 
 	bool atlas_open_				=	true;
-	bool mouseButtonPressed_		=	false;
+	bool mouse_modctrl				=	false;
 
 
 	enum class Direction
@@ -76,11 +69,9 @@ protected:
 
 	void OpenFileDialog();
 	void SaveFileDialog();
-	void ReadJSON(const string& path) ;
-	void WriteJSON(const string& path);
 
-	void RenderMap() const;
-	void RenderAtlas() const;
+	void RenderMap();
+	void RenderAtlas();
 	void RenderMouse();
 	void RenderGUI();
 

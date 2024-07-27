@@ -22,12 +22,6 @@ struct Tile
 	u8  asset_id	{0};
 };
 
-inline int pointToInt( Point r, int xMax ) { return r.x + r.y * xMax; }
-inline Point intToPoint( int s, int xMax ) { return Point { s % xMax, s / xMax }; }
-
-/// generate with these macro inline serialization function, to and from JSON for Tile
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, asset_id)
-
 struct TileSet
 {
 	SharedPtr<Texture> texture;
@@ -35,6 +29,13 @@ struct TileSet
 	string path;
 
 };
+
+/// generate with these macro inline serialization function, to and from JSON for Tile
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, asset_id)
+
+inline int pointToInt( Point r, int xMax ) { return r.x + r.y * xMax; }
+inline Point intToPoint( int s, int xMax ) { return Point { s % xMax, s / xMax }; }
+
 
 class Map
 {
@@ -61,9 +62,15 @@ public:
 		Vector<Vector<Tile>> tiles_ {static_cast <size_t>(layer_numb)-1, Vector<Tile>(rows*cols,{EmptyTileVal,0})};
 	}
 
-	void AddTileset(const SharedPtr<Texture> & texture, Point size, const string& path)
+	void AddTileset(const SharedPtr<Texture> & texture,const Point size, const string& path)
 	{
 		tilesets_.push_back({texture, size, path});
+	}
+
+	void RemoveTileset(const int id)
+	{
+		assert(tilesets_.size() > id);
+		tilesets_.erase(tilesets_.begin() + id);
 	}
 
 	void setTile(const u8 layer, const u16 id, const Tile tile)
@@ -75,23 +82,22 @@ public:
 		tiles_[layer][id] = tile;
 	}
 
-	[[nodiscard]] bool								isNoTileSet()				const	{	return tilesets_.empty();	}
-	[[nodiscard]] TileSet							getTileset(const int id)	const	{	return tilesets_[id];			}
-	[[nodiscard]] Point								getTilesetSize(const int id)const	{	return tilesets_[id].size;	}
-	[[nodiscard]] const Vector<Tile>			&	getLayer(const int index)	const	{	return tiles_.at(index);	}
-	[[nodiscard]] const Vector<Vector<Tile>>	&	get_tiles()					const	{	return tiles_;				}
 
-	[[nodiscard]] u16								rows()						const	{	return rows_;				}
-	[[nodiscard]] u16								cols()						const	{	return cols_;				}
-	[[nodiscard]] u16								tilesize()					const	{	return tilesize_;			}
-	[[nodiscard]] u8								layer_numb()				const	{	return layer_numb_;			}
+	[[nodiscard]]  Vector<Tile>			&			getLayer(const int index)			 {	return tiles_.at(index);	}
+	[[nodiscard]]  Vector<Vector<Tile>>	&			get_tiles()							 {	return tiles_;				}
+	[[nodiscard]] Vector<TileSet>		&			getTilesets()						 {	return tilesets_;			}
+	[[nodiscard]] TileSet				&			getTileset(const int id)			 {	return tilesets_[id];		}
+	[[nodiscard]] Point								getTilesetSize(const int id)	const{	return tilesets_[id].size;	}
+	[[nodiscard]] bool								isNoTileSet()					const{	return tilesets_.empty();	}
+	[[nodiscard]] u16								rows()							const{	return rows_;				}
+	[[nodiscard]] u16								cols()							const{	return cols_;				}
+	[[nodiscard]] u16								tilesize()						const{	return tilesize_;			}
+	[[nodiscard]] u8								layer_numb()					const{	return layer_numb_;			}
 
 };
 
 
-//------------------------------------------------------------------------
-
-
+//--------------------------------------------------
 
 }
 

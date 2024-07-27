@@ -104,10 +104,10 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 
 			case SDL_MOUSEMOTION:
 				{
-					if(mouseButtonPressed_)
+					if(mouse_modctrl)
 					{
-						multiselect_endpos_.x = event.motion.x;
-						multiselect_endpos_.y = event.motion.y;
+						mselect_endp_.x = event.motion.x;
+						mselect_endp_.y = event.motion.y;
 					}
 					/// Update current mouse position
 					fixmousepos_.x  = event.motion.x / scaled_size_;
@@ -125,8 +125,8 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 								const Uint8* keystate = SDL_GetKeyboardState(nullptr);
 								if (keystate[SDL_SCANCODE_LCTRL])
 								{
-									mouseButtonPressed_ = true;
-									multiselect_startpos_ = {event.button.x, event.button.y};
+									mouse_modctrl = true;
+									mselect_startp_ = {event.button.x, event.button.y};
 								}else
 								{
 									singleselect_point.x = fixmousepos_.x;
@@ -161,7 +161,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 						// if mouse is in valid Panel, click to remove tile type and replace it with EmptyTileVal.
 						if((fixmousepos_.y * scaled_size_ < lower_panel_.y) || !isAtlasVisible()	)
 						{
-							const int dst_pos = pointToInt(fixmousepos_, map_header_.cols);
+							const int dst_pos = pointToInt(fixmousepos_, map_.cols());
 							map_.setTile(layer_id_, dst_pos, {EmptyTileVal, tileset_id_});
 						}
 					}
@@ -170,17 +170,17 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 			case SDL_MOUSEBUTTONUP:
 				if(event.button.button == SDL_BUTTON_LEFT)
 				{
-					if(event.button.y > lower_panel_.y && mouseButtonPressed_){
+					if(event.button.y > lower_panel_.y && mouse_modctrl){
 						//println("Multiselection rect: x {} y {} w {} h {}", multi_selection_rect_.x, multi_selection_rect_.y, multi_selection_rect_.w, multi_selection_rect_.h);
 						// set square to tileset coords
-						multi_selection_rect_.x = multi_selection_rect_.x / scaled_size_;
-						multi_selection_rect_.y = (multi_selection_rect_.y - lower_panel_.y) / scaled_size_;
-						multi_selection_rect_.w = multi_selection_rect_.w / scaled_size_;
-						multi_selection_rect_.h = multi_selection_rect_.h / scaled_size_;
-						const int startX = multi_selection_rect_.x;
-						const int startY = multi_selection_rect_.y;
-						const int endX = multi_selection_rect_.w;
-						const int endY = multi_selection_rect_.h;
+						multiselection_.x = multiselection_.x / scaled_size_;
+						multiselection_.y = (multiselection_.y - lower_panel_.y) / scaled_size_;
+						multiselection_.w = multiselection_.w / scaled_size_;
+						multiselection_.h = multiselection_.h / scaled_size_;
+						const int startX = multiselection_.x;
+						const int startY = multiselection_.y;
+						const int endX = multiselection_.w;
+						const int endY = multiselection_.h;
 
 						multiselect_Items.clear();
 						for(int x = startX; x < endX; ++x) {
@@ -189,10 +189,10 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 									multiselect_Items.push_back({{x,y}, {0,0}});
 								}
 								multiselect_Items.push_back({{x,y},{x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y}});
-								println("x {} y {}, offsetx {} offsety {}",x,y, x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y);
+								//println("x {} y {}, offsetx {} offsety {}",x,y, x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y);
 							}
 						}
-						mouseButtonPressed_ = false;
+						mouse_modctrl = false;
 					}
 				}
 			default:
@@ -239,7 +239,7 @@ void EditorState::Render( const u32 frame, const u32 totalMSec, const float delt
 
 }
 
-void EditorState::RenderMap() const {
+void EditorState::RenderMap() {
 	const u16 tilesize = map_.tilesize();
 	for( auto & lay : map_.get_tiles())
 	{
@@ -280,7 +280,7 @@ void EditorState::RenderMap() const {
 	}
 }
 
-void EditorState::RenderAtlas() const
+void EditorState::RenderAtlas()
 {
 	assert(WindowSize.x > map_.getTilesetSize(tileset_id_).x);
 	assert(WindowSize.y > map_.getTilesetSize(tileset_id_).y);
@@ -313,10 +313,10 @@ void EditorState::RenderAtlas() const
 			{
 				SDL_SetRenderDrawColor(render, 255,255,255,255); // white
 				const Rect dst_rect = {
-					multi_selection_rect_.x * scaled_size_,
-					multi_selection_rect_.y * scaled_size_ + lower_panel_.y,
-					multi_selection_rect_.w * scaled_size_,
-					multi_selection_rect_.h * scaled_size_};
+					multiselection_.x * scaled_size_,
+					multiselection_.y * scaled_size_ + lower_panel_.y,
+					multiselection_.w * scaled_size_,
+					multiselection_.h * scaled_size_};
 				SDL_RenderDrawRect(render, &dst_rect);
 			}
 		}
@@ -333,16 +333,16 @@ void EditorState::RenderMouse() {
 	};
 	SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &mouse_dstRect);
 
-	if(mouseButtonPressed_){
+	if(mouse_modctrl){
 		{
 			// set multiselection square to render coords
-			multi_selection_rect_.x = std::min((multiselect_startpos_.x / scaled_size_) * scaled_size_, (multiselect_endpos_.x / scaled_size_)*scaled_size_);
-			multi_selection_rect_.y = std::min((multiselect_startpos_.y/ scaled_size_) * scaled_size_, (multiselect_endpos_.y / scaled_size_)*scaled_size_);
-			multi_selection_rect_.w = std::abs((multiselect_endpos_.x / scaled_size_) * scaled_size_ - (multiselect_startpos_.x / scaled_size_) * scaled_size_);
-			multi_selection_rect_.h = std::abs((multiselect_endpos_.y / scaled_size_) * scaled_size_ - (multiselect_startpos_.y/ scaled_size_) * scaled_size_);
+			multiselection_.x = std::min((mselect_startp_.x / scaled_size_) * scaled_size_, (mselect_endp_.x / scaled_size_)*scaled_size_);
+			multiselection_.y = std::min((mselect_startp_.y/ scaled_size_) * scaled_size_, (mselect_endp_.y / scaled_size_)*scaled_size_);
+			multiselection_.w = std::abs((mselect_endp_.x / scaled_size_) * scaled_size_ - (mselect_startp_.x / scaled_size_) * scaled_size_);
+			multiselection_.h = std::abs((mselect_endp_.y / scaled_size_) * scaled_size_ - (mselect_startp_.y/ scaled_size_) * scaled_size_);
 
 			SDL_SetRenderDrawColor(render, 255, 255, 255, 255); // Weiß
-			SDL_RenderDrawRect(render, &multi_selection_rect_);
+			SDL_RenderDrawRect(render, &multiselection_);
 
 
 		}
@@ -361,10 +361,37 @@ void EditorState::RenderGUI()
 	if(game.imgui_window_active)
 	{
 		ImGui::Begin("ImGUI window", &game.imgui_window_active);
-		ImGui::Checkbox("Show Atlas", &atlas_open_);
+		if(ImGui::Button("add tileset"))
+		{
+			nfdchar_t *outPath = nullptr;
+			const nfdresult_t result = NFD_OpenDialog( nullptr, BasePath, &outPath );
 
+			if ( result == NFD_OKAY )
+			{
+				SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath);
+				Point size;
+				SDL_QueryTexture(asset_texture.get(), nullptr, nullptr, &size.x, &size.y);
+				map_.AddTileset(asset_texture, size, outPath);
+				free(outPath);
+			}
+			else if ( result == NFD_CANCEL )
+			{
+				println("Canceled by user. Load standard-map");
+				map_ = Map();
+			}
+			else{
+				println("Error: {}", NFD_GetError() );
+			}
+		}
+		ImGui::Checkbox("Show Atlas", &atlas_open_);
 		constexpr int MaxSize = 650;
 		constexpr int MinSize = 0;
+
+		const int MaxTileSet = map_.getTilesets().size()-1;
+		int slider_assets = tileset_id_;
+		ImGui::SliderInt("active Atlas", &slider_assets, MinSize,  MaxTileSet);
+		tileset_id_ = slider_assets;
+
 		// Control panel sizes
 		ImGui::SliderInt("Atlas height", &lower_panel_.h, MinSize, MaxSize);
 		lower_panel_.y = ((MaxSize - lower_panel_.h) / scaled_size_ )* scaled_size_;
