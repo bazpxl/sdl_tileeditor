@@ -91,17 +91,15 @@ include( ${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake )
 
 file( LOCK "${VCPKG_DIR}.lock" RELEASE )
 
-
-
-find_package( SDL2       CONFIG REQUIRED )
-find_package( SDL2_ttf   CONFIG REQUIRED )
-find_package( SDL2_mixer CONFIG REQUIRED )
-find_package( SDL2_image CONFIG REQUIRED )
-find_package( SDL2_net   CONFIG REQUIRED )
-find_package( fmt        CONFIG REQUIRED )
-find_package( unofficial-nativefiledialog CONFIG REQUIRED )
-find_package( nlohmann_json CONFIG REQUIRED )
-find_package( imgui      CONFIG REQUIRED )
+find_package( SDL2                          CONFIG REQUIRED )
+find_package( SDL2_ttf                      CONFIG REQUIRED )
+find_package( SDL2_mixer                    CONFIG REQUIRED )
+find_package( SDL2_image                    CONFIG REQUIRED )
+find_package( SDL2_net                      CONFIG REQUIRED )
+find_package( fmt                           CONFIG REQUIRED )
+find_package( nlohmann_json                 CONFIG REQUIRED )
+find_package( imgui                         CONFIG REQUIRED )
+find_package( unofficial-nativefiledialog   CONFIG REQUIRED )
 
 
 # Why does MSVC exist, but not CLANG or GCC?
@@ -163,9 +161,8 @@ add_executable( sdl_tileeditor
         src/example/main.cpp
         src/example/examplegame.h
         src/example/examplegame.cpp
-        src/example/introstate.cpp
+        src/example/editorstate.cpp
         src/tilemap.h
-        #${IMGUI_SOURCES}
 )
 
 target_include_directories( sdl_tileeditor
@@ -187,7 +184,7 @@ target_link_libraries( sdl_tileeditor
         $<TARGET_NAME_IF_EXISTS:unofficial::nativefiledialog::nfd>
         $<TARGET_NAME_IF_EXISTS:OpenMP::OpenMP_CXX>
         $<TARGET_NAME_IF_EXISTS:imgui::imgui>
-        $<TARGET_NAME_IF_EXISTS:nlohmann_json::nlohmann_json>
+        nlohmann_json::nlohmann_json
 
         )
 

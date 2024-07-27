@@ -1,13 +1,9 @@
-//
-// Created by bzl on 21.06.2024.
-//
-
 #ifndef TILEMAP_H
 #define TILEMAP_H
 
 #include "global.h"
 #include "nlohmann/json.hpp"
-using json = nlohmann::json;
+
 
 namespace BzlGame
 {
@@ -40,6 +36,8 @@ struct MapData
 	Vector<SharedPtr<Texture>> tileSets;
 	Vector<Vector<Tile>> tiles {LayerNumb-1, Vector<Tile>(MapRows*MapCols,{EmptyTileVal,0})};
 };
+
+
 
 //------------------------------------------------------------------------
 
