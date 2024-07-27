@@ -16,6 +16,8 @@ public:
 	bool HandleEvent( const Event event ) override;
 };
 
+// data struct saves position in tileset and offset to the first MultiSelectItem.
+// needed for stamp multi-tile insert
 struct MultiSelectItem {
 	Point tileset_pos;
 	Point offset;
@@ -69,6 +71,8 @@ protected:
 
 	void OpenFileDialog();
 	void SaveFileDialog();
+
+	void OpenAssetFileDialog();
 
 	void RenderMap();
 	void RenderAtlas();

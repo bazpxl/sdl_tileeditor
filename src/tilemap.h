@@ -48,19 +48,34 @@ private:
 	u16 tilesize_{};
 	u8  layer_numb_{};
 public:
-
-	void ReadJson(const string & path, Renderer * render);
-	void WriteJson(const string & path);
-
-
-	explicit Map(const u16 rows = MapRows, const u16 cols = MapCols, const u16 tilesize = TileSize, const u8 layer_numb = LayerNumb)
+	// ctor empty map without tilesets
+	explicit Map(const u16 rows = MapRows, const u16 cols = MapCols,
+				const u16 tilesize = TileSize, const u8 layer_numb = LayerNumb)
 		: rows_(rows),
 		  cols_(cols),
 		  tilesize_(tilesize),
 		  layer_numb_(layer_numb)
 	{
-		Vector<Vector<Tile>> tiles_ {static_cast <size_t>(layer_numb)-1, Vector<Tile>(rows*cols,{EmptyTileVal,0})};
+		Vector<Vector<Tile>> tiles_
+		{
+			static_cast <size_t>(layer_numb)-1,
+			Vector<Tile>(rows*cols,
+			{EmptyTileVal,0})
+		};
 	}
+
+	// ctor needs params path & renderer, other params are optional
+	// create map and read data from file
+	explicit Map( const string & path, Renderer* render)
+		: rows_(MapRows), cols_(MapCols),
+		  tilesize_(TileSize), layer_numb_(LayerNumb)
+	{
+		Vector<Vector<Tile>> tiles_ {static_cast <size_t>(layer_numb_)-1, Vector<Tile>(rows_*cols_,{EmptyTileVal,0})};
+		ReadJson(path, render);
+	}
+
+	void ReadJson(const string & path, Renderer * render);
+	void WriteJson(const string & path);
 
 	void AddTileset(const SharedPtr<Texture> & texture,const Point size, const string& path)
 	{
@@ -83,8 +98,8 @@ public:
 	}
 
 
-	[[nodiscard]]  Vector<Tile>			&			getLayer(const int index)			 {	return tiles_.at(index);	}
-	[[nodiscard]]  Vector<Vector<Tile>>	&			get_tiles()							 {	return tiles_;				}
+	[[nodiscard]] Vector<Tile>			&			getLayer(const int index)			 {	return tiles_.at(index);	}
+	[[nodiscard]] Vector<Vector<Tile>>	&			get_tiles()							 {	return tiles_;				}
 	[[nodiscard]] Vector<TileSet>		&			getTilesets()						 {	return tilesets_;			}
 	[[nodiscard]] TileSet				&			getTileset(const int id)			 {	return tilesets_[id];		}
 	[[nodiscard]] Point								getTilesetSize(const int id)	const{	return tilesets_[id].size;	}

@@ -92,7 +92,7 @@ namespace BzlGame
 		void operator()(Texture *p)   const { SDL_DestroyTexture(p);    }
 	};
 
-	/// Returns loaded texture from path
+	/// Returns from path loaded texture as shared_ptr with individual deleter
 	inline SharedPtr<Texture>
 	CreateSharedTexture(SDL_Renderer *renderer, const char * const file)
 	{
