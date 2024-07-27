@@ -56,6 +56,29 @@ void EditorState::SaveFileDialog()
 	}
 }
 
+void EditorState::OpenAssetFileDialog()
+{
+	nfdchar_t *outPath = nullptr;
+	const nfdresult_t result = NFD_OpenDialog( nullptr, BasePath, &outPath );
+
+	if ( result == NFD_OKAY )
+	{
+		SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath);
+		Point size;
+		SDL_QueryTexture(asset_texture.get(), nullptr, nullptr, &size.x, &size.y);
+		map_.AddTileset(asset_texture, size, outPath);
+		free(outPath);
+	}
+	else if ( result == NFD_CANCEL )
+	{
+		println("Canceled by user. Load standard-map");
+
+	}
+	else{
+		println("Error: {}", NFD_GetError() );
+	}
+}
+
 void EditorState::OpenFileDialog()
 {
 	nfdchar_t *outPath = nullptr;
@@ -360,39 +383,22 @@ void EditorState::RenderGUI()
 
 	if(game.imgui_window_active)
 	{
+		constexpr int MaxSize = 650;
+		constexpr int MinSize = 0;
+		const int MaxTileSet = static_cast<int>(map_.getTilesets().size()-1);
+
 		ImGui::Begin("ImGUI window", &game.imgui_window_active);
 		if(ImGui::Button("add tileset"))
 		{
-			nfdchar_t *outPath = nullptr;
-			const nfdresult_t result = NFD_OpenDialog( nullptr, BasePath, &outPath );
-
-			if ( result == NFD_OKAY )
-			{
-				SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath);
-				Point size;
-				SDL_QueryTexture(asset_texture.get(), nullptr, nullptr, &size.x, &size.y);
-				map_.AddTileset(asset_texture, size, outPath);
-				free(outPath);
-			}
-			else if ( result == NFD_CANCEL )
-			{
-				println("Canceled by user. Load standard-map");
-				map_ = Map();
-			}
-			else{
-				println("Error: {}", NFD_GetError() );
-			}
+			OpenAssetFileDialog();
 		}
 		ImGui::Checkbox("Show Atlas", &atlas_open_);
-		constexpr int MaxSize = 650;
-		constexpr int MinSize = 0;
 
-		const int MaxTileSet = map_.getTilesets().size()-1;
 		int slider_assets = tileset_id_;
 		ImGui::SliderInt("active Atlas", &slider_assets, MinSize,  MaxTileSet);
 		tileset_id_ = slider_assets;
 
-		// Control panel sizes
+		// atlas panel slider
 		ImGui::SliderInt("Atlas height", &lower_panel_.h, MinSize, MaxSize);
 		lower_panel_.y = ((MaxSize - lower_panel_.h) / scaled_size_ )* scaled_size_;
 		upper_panel_.h = WindowSize.y - lower_panel_.h;
@@ -402,6 +408,7 @@ void EditorState::RenderGUI()
 		ImGui::SliderInt("active layer:", &slider_layer, 0, LayerNumb-1);
 		layer_id_ = static_cast<u8>(slider_layer);
 
+		// scaling slider
 		int slider_zoom = zoom_;
 		ImGui::SliderInt("Render scale", &slider_zoom, 1, 3);
 		zoom_ = static_cast<u8>(slider_zoom);
