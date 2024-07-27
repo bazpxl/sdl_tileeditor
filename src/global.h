@@ -84,7 +84,7 @@ namespace BzlGame
 	//using std::cout, std::cin, std::cerr, std::endl;
 	using fmt::print, fmt::println, fmt::format;
 
-	constexpr Point WindowSize	=  {	1600, 900	};
+	constexpr Point WindowSize	=  {	960, 600	};
 
 	struct bzDeleter{
 		void operator()(Window *p)    const { SDL_DestroyWindow(p);    }
@@ -141,7 +141,7 @@ namespace BzlGame
 #ifdef FINAL
 #define BasePath ""             // Put the binary in the root folder, parallel to assets/
 #else
-#define BasePath "../../"    //    out/build/${architecture}-${configuration}
+#define BasePath "../../../"    //    out/build/${architecture}-${configuration}
                                 // OR build/${configuration}-${compiler}/bin
 #endif
 

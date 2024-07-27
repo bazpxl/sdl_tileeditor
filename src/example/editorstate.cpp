@@ -10,102 +10,31 @@ void EditorState::Init()
 	gui_texture_ = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png");
 
 	OpenFileDialog();
-
-	for(int i = 0; i < map_data_.tileSets.size(); i++)
-	{
-		SDL_QueryTexture(map_data_.tileSets[i].get(), nullptr, nullptr,&tset_size_array_[i].x, &tset_size_array_[i].y );
-		tset_size_array_[i].x = tset_size_array_[i].x;
-		tset_size_array_[i].y = tset_size_array_[i].y;
-	}
-
 }
 
-void EditorState::UnInit()
-{
-
-}
+void EditorState::UnInit(){}
 
 void EditorState::MoveCamera(Direction dir)
 {
 	switch (dir)
 	{
 		case Direction::Up:
-			if(camera_map_.y > CameraSpeed)
-			{
-				camera_map_.y -= CameraSpeed;
-			}
+			if(camera_map_.y > CameraSpeed)				{		camera_map_.y -= CameraSpeed;		}
 			break;
 		case Direction::Down:
-			if(camera_map_.y < WindowSize.y-CameraSpeed)
-			{
-				camera_map_.y += CameraSpeed;
-			}
+			if(camera_map_.y < WindowSize.y-CameraSpeed){		camera_map_.y += CameraSpeed;		}
 			break;
 		case Direction::Left:
-			if(camera_map_.x > CameraSpeed)
-			{
-				camera_map_.x -= CameraSpeed;
-			}
+			if(camera_map_.x > CameraSpeed)				{		camera_map_.x -= CameraSpeed;		}
 			break;
 		case Direction::Right:
-			if(camera_map_.x < WindowSize.x-CameraSpeed)
-			{
-				camera_map_.x += CameraSpeed;
-			}
+			if(camera_map_.x < WindowSize.x-CameraSpeed){		camera_map_.x += CameraSpeed;		}
 			break;
 		default:
 			break;
 	}
 }
 
-void EditorState::ReadJSON(const string & path)
-{
-
-	std::ifstream file(path);
-	if(!file.is_open())[[unlikely]]
-	{
-		throw std::invalid_argument("Could'nt open file: " + path );
-	}
-	json j = json::parse(file);
-
-	map_header_.asset_paths		=	j["asset_paths"].template get<Vector<string>>();
-	map_header_.rows			=	j["rows"].template get<u16>();
-	map_header_.cols			=	j["cols"].template get<u16>();
-	map_header_.tilesize		=	j["tilesize"].template get<u8>();
-	map_header_.layer_numb		=	j["layer_numb"].template get<u8>();
-
-	map_data_.tiles				=	j["tiles"].template get<Vector<Vector<Tile>>>();
-
-	for(auto & vec : map_header_.asset_paths)
-	{
-		string tmpstr = BasePath;
-		tmpstr.append(vec);
-		map_data_.tileSets.push_back(CreateSharedTexture(render, tmpstr.c_str()));
-
-	}
-	file.close();
-}
-
-void EditorState::WriteJSON(const string & path)
-{
-	const json dataJson{
-		{"asset_paths", map_header_.asset_paths},
-		{"rows", map_header_.rows},
-		{"cols", map_header_.cols},
-		{"tilesize", map_header_.tilesize},
-		{ "layer_numb", map_header_.layer_numb},
-		{"tiles", map_data_.tiles}
-	};
-
-	std::ofstream file{path};
-	if(!file)[[unlikely]]
-	{
-		throw std::invalid_argument("Error: Could not load file: " + path );
-	}
-	file <<  dataJson << std::endl;
-	file.close();
-
-}
 
 void EditorState::SaveFileDialog()
 {
@@ -114,7 +43,7 @@ void EditorState::SaveFileDialog()
 
 	if ( result == NFD_OKAY )
 	{
-		WriteJSON(outPath);
+		map_.WriteJson(outPath);
 		free(outPath);
 	}
 	else if ( result == NFD_CANCEL )
@@ -134,13 +63,13 @@ void EditorState::OpenFileDialog()
 
 	if ( result == NFD_OKAY )
 	{
-		ReadJSON(outPath);
+		map_.ReadJson(outPath, render);
 		free(outPath);
 	}
 	else if ( result == NFD_CANCEL )
 	{
 		println("Canceled by user. Load standard-map");
-		ReadJSON( BasePath"asset/map.json" );
+		map_ = Map();
 	}
 	else{
 		println("Error: {}", NFD_GetError() );
@@ -189,7 +118,6 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 				{
 					if(event.button.button == SDL_BUTTON_LEFT)
 					{
-
 						// if mouse is inside LowerPanel, select tile on current mouse pos
 						if((fixmousepos_.y * scaled_size_  >= lower_panel_.y)	&&	isAtlasVisible())
 							{
@@ -213,18 +141,18 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 							{
 								if(multiselect_Items.empty())
 								{
-									const int selected_type = static_cast<u16>(pointToInt(singleselect_point, tset_size_array_[tileset_id_].x  / TileSize));
-									const int dst_pos = pointToInt(fixmousepos_, map_header_.cols);
-									map_data_.tiles[layer_id_][dst_pos].type = selected_type;
-									map_data_.tiles[layer_id_][dst_pos].asset_id = tileset_id_;
-								}else {
+									const u16 selected_type = static_cast<u16>(pointToInt(singleselect_point, map_.getTilesetSize(tileset_id_).x / map_.tilesize()));
+									const int dst_pos = pointToInt(fixmousepos_, map_.cols());
+									map_.setTile(layer_id_, dst_pos, {selected_type, tileset_id_});
+								}else
+								{
 									for(auto & multiItem : multiselect_Items)
 									{
-										const int selected_type = static_cast<u16>(pointToInt(multiItem.tileset_pos, tset_size_array_[tileset_id_].x  / TileSize));
-										Point pos = {fixmousepos_.x + multiItem.offset.x, fixmousepos_.y + multiItem.offset.y};
-										const int dst_pos = pointToInt(pos, map_header_.cols);
-										map_data_.tiles[layer_id_][dst_pos].type = selected_type;
-										map_data_.tiles[layer_id_][dst_pos].asset_id = tileset_id_;
+										const u16 selected_type = static_cast<u16>(pointToInt(multiItem.tileset_pos, map_.getTilesetSize(tileset_id_).x / map_.tilesize()));
+										const Point pos = {fixmousepos_.x + multiItem.offset.x, fixmousepos_.y + multiItem.offset.y};
+										const int dst_pos = pointToInt(pos, map_.cols());
+										map_.setTile(layer_id_, dst_pos, {selected_type, tileset_id_});
+
 									}
 								}
 							}
@@ -234,7 +162,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 						if((fixmousepos_.y * scaled_size_ < lower_panel_.y) || !isAtlasVisible()	)
 						{
 							const int dst_pos = pointToInt(fixmousepos_, map_header_.cols);
-							map_data_.tiles[layer_id_][dst_pos].type = EmptyTileVal;
+							map_.setTile(layer_id_, dst_pos, {EmptyTileVal, tileset_id_});
 						}
 					}
 					break;
@@ -242,32 +170,31 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 			case SDL_MOUSEBUTTONUP:
 				if(event.button.button == SDL_BUTTON_LEFT)
 				{
-
 					if(event.button.y > lower_panel_.y && mouseButtonPressed_){
 						//println("Multiselection rect: x {} y {} w {} h {}", multi_selection_rect_.x, multi_selection_rect_.y, multi_selection_rect_.w, multi_selection_rect_.h);
+						// set square to tileset coords
+						multi_selection_rect_.x = multi_selection_rect_.x / scaled_size_;
+						multi_selection_rect_.y = (multi_selection_rect_.y - lower_panel_.y) / scaled_size_;
+						multi_selection_rect_.w = multi_selection_rect_.w / scaled_size_;
+						multi_selection_rect_.h = multi_selection_rect_.h / scaled_size_;
 						const int startX = multi_selection_rect_.x;
 						const int startY = multi_selection_rect_.y;
 						const int endX = multi_selection_rect_.w;
 						const int endY = multi_selection_rect_.h;
 
 						multiselect_Items.clear();
-						for(int x = startX; x <= endX; x++) {
-							for(int y = startY; y <= endY; y++) {
+						for(int x = startX; x < endX; ++x) {
+							for(int y = startY; y < endY; ++y) {
 								if(multiselect_Items.empty()) {
 									multiselect_Items.push_back({{x,y}, {0,0}});
 								}
 								multiselect_Items.push_back({{x,y},{x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y}});
-								//println("x {} y {}, offsetx {} offsety {}",x,y, x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y);
+								println("x {} y {}, offsetx {} offsety {}",x,y, x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y);
 							}
 						}
-
 						mouseButtonPressed_ = false;
 					}
-
-
-
 				}
-
 			default:
 				break;
 		}
@@ -280,37 +207,25 @@ void EditorState::InputKeyboard(const SDL_Event & event)
 	if( what_key.scancode == SDL_SCANCODE_F5 && event.key.repeat == 0 ){
 		SaveFileDialog();
 	}
-
-	else if(what_key.scancode == SDL_SCANCODE_UP){
-		MoveCamera(Direction::Up);
-	}
-	else if(what_key.scancode == SDL_SCANCODE_DOWN){
-		MoveCamera(Direction::Down);
-	}
-	else if(what_key.scancode == SDL_SCANCODE_LEFT){
-		MoveCamera(Direction::Left);
-	}
-	else if(what_key.scancode == SDL_SCANCODE_RIGHT){
-		MoveCamera(Direction::Right);
-	}
+	else if(what_key.scancode == SDL_SCANCODE_UP)		{	MoveCamera(Direction::Up);		}
+	else if(what_key.scancode == SDL_SCANCODE_DOWN)		{	MoveCamera(Direction::Down);	}
+	else if(what_key.scancode == SDL_SCANCODE_LEFT)		{	MoveCamera(Direction::Left);	}
+	else if(what_key.scancode == SDL_SCANCODE_RIGHT)	{	MoveCamera(Direction::Right);	}
 
 	else if( what_key.scancode == SDL_SCANCODE_F2 && event.key.repeat == 0){
-		if(isAtlasVisible()){
+		if(isAtlasVisible())
+		{
 			atlas_open_ = false;
-		}else{
+		}else
+		{
 			atlas_open_ = true;
 		}
-	}
-
-	else if( what_key.scancode == SDL_SCANCODE_ESCAPE && event.key.repeat == 0){
+	}else if( what_key.scancode == SDL_SCANCODE_ESCAPE && event.key.repeat == 0){
 		game.SetNextState( 0 );
 	}
 }
 
-void EditorState::Update( const u32 frame, const u32 totalMSec, const float deltaT )
-{
-
-}
+void EditorState::Update( const u32 frame, const u32 totalMSec, const float deltaT ){}
 
 void EditorState::Render( const u32 frame, const u32 totalMSec, const float deltaT )
 {
@@ -325,23 +240,24 @@ void EditorState::Render( const u32 frame, const u32 totalMSec, const float delt
 }
 
 void EditorState::RenderMap() const {
-	for(const auto & lay : map_data_.tiles)
+	const u16 tilesize = map_.tilesize();
+	for( auto & lay : map_.get_tiles())
 	{
 		for(int tile = 0; tile < lay.size(); tile++)
 		{
 			assert(lay[tile].type <= EmptyTileVal);
 			if(lay[tile].type != EmptyTileVal){
 				// Calculate position from type in TileSet
-				const Point tileset_pos = intToPoint(lay[tile].type, tset_size_array_[lay[tile].asset_id].x / TileSize);
+				const Point tileset_pos = intToPoint(lay[tile].type, map_.getTilesetSize(lay[tile].asset_id).x / tilesize);
 				const Rect srcRect
 				{
-					tileset_pos.x * map_header_.tilesize,
-					tileset_pos.y * map_header_.tilesize,
-					map_header_.tilesize, map_header_.tilesize
+					tileset_pos.x * tilesize,
+					tileset_pos.y * tilesize,
+					tilesize, tilesize
 				};
 
 				// Calculate destination on Map
-				const Point dstCoords = intToPoint(tile,map_header_.rows);
+				const Point dstCoords = intToPoint(tile,map_.cols());
 				const Rect dstRect
 				{
 					dstCoords.x *scaled_size_ - camera_map_.x  ,
@@ -353,11 +269,11 @@ void EditorState::RenderMap() const {
 				{
 					if(dstRect.y+TileSize < lower_panel_.y)
 					{
-						SDL_RenderCopy(render, map_data_.tileSets[lay[tile].asset_id].get(), &srcRect, &dstRect);
+						SDL_RenderCopy(render, map_.getTileset(lay[tile].asset_id).texture.get(), &srcRect, &dstRect);
 					}
 				}else
 				{
-					SDL_RenderCopy(render, map_data_.tileSets[lay[tile].asset_id].get(), &srcRect, &dstRect);
+					SDL_RenderCopy(render, map_.getTileset(lay[tile].asset_id).texture.get(), &srcRect, &dstRect);
 				}
 			}
 		}
@@ -366,18 +282,17 @@ void EditorState::RenderMap() const {
 
 void EditorState::RenderAtlas() const
 {
-	assert(WindowSize.x > tset_size_array_[tileset_id_].x);
-	assert(WindowSize.y > tset_size_array_[tileset_id_].y);
-
-		const int tileNumb = tset_size_array_[tileset_id_].x * tset_size_array_[tileset_id_].y / TileSize;
+	assert(WindowSize.x > map_.getTilesetSize(tileset_id_).x);
+	assert(WindowSize.y > map_.getTilesetSize(tileset_id_).y);
+		const int tileNumb = (map_.getTilesetSize(tileset_id_).x * map_.getTilesetSize(tileset_id_).y )/ map_.tilesize();
 		for(int i = 0; i < tileNumb; i++)
 		{
-			const Point relative_pos = intToPoint(i , tset_size_array_[tileset_id_].x / map_header_.tilesize);
+			const Point relative_pos = intToPoint(i , map_.getTilesetSize(tileset_id_).x / map_.tilesize());
 			const Rect srcRect =
 			{
-				relative_pos.x * map_header_.tilesize,
-				relative_pos.y * map_header_.tilesize,
-				map_header_.tilesize, map_header_.tilesize
+				relative_pos.x * map_.tilesize(),
+				relative_pos.y * map_.tilesize(),
+				map_.tilesize(), map_.tilesize()
 			};
 			const Rect dstRect =
 			{
@@ -386,7 +301,7 @@ void EditorState::RenderAtlas() const
 			   scaled_size_, scaled_size_
 		   };
 
-			SDL_RenderCopy(render, map_data_.tileSets[tileset_id_].get(), &srcRect, &dstRect);
+			SDL_RenderCopy(render, map_.getTileset(tileset_id_).texture.get(), &srcRect, &dstRect);
 
 			// check if multi or single selection
 			if(multiselect_Items.empty())
@@ -396,14 +311,14 @@ void EditorState::RenderAtlas() const
 				SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &dst_rect );
 			}else
 			{
-				for(const auto & multiItem: multiselect_Items){
-					const Rect mouse_srcRect = {0,0,scaled_size_,scaled_size_};
-					const Rect dst_rect = {multiItem.tileset_pos.x * scaled_size_, multiItem.tileset_pos.y * scaled_size_ + lower_panel_.y, scaled_size_, scaled_size_};
-					SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &dst_rect );
-				}
+				SDL_SetRenderDrawColor(render, 255,255,255,255); // white
+				const Rect dst_rect = {
+					multi_selection_rect_.x * scaled_size_,
+					multi_selection_rect_.y * scaled_size_ + lower_panel_.y,
+					multi_selection_rect_.w * scaled_size_,
+					multi_selection_rect_.h * scaled_size_};
+				SDL_RenderDrawRect(render, &dst_rect);
 			}
-
-
 		}
 }
 
@@ -421,19 +336,15 @@ void EditorState::RenderMouse() {
 	if(mouseButtonPressed_){
 		{
 			// set multiselection square to render coords
-			multi_selection_rect_.x = std::min(multiselect_startpos_.x, multiselect_endpos_.x);
-			multi_selection_rect_.y = std::min(multiselect_startpos_.y, multiselect_endpos_.y);
-			multi_selection_rect_.w = std::abs(multiselect_endpos_.x - multiselect_startpos_.x);
-			multi_selection_rect_.h = std::abs(multiselect_endpos_.y - multiselect_startpos_.y);
+			multi_selection_rect_.x = std::min((multiselect_startpos_.x / scaled_size_) * scaled_size_, (multiselect_endpos_.x / scaled_size_)*scaled_size_);
+			multi_selection_rect_.y = std::min((multiselect_startpos_.y/ scaled_size_) * scaled_size_, (multiselect_endpos_.y / scaled_size_)*scaled_size_);
+			multi_selection_rect_.w = std::abs((multiselect_endpos_.x / scaled_size_) * scaled_size_ - (multiselect_startpos_.x / scaled_size_) * scaled_size_);
+			multi_selection_rect_.h = std::abs((multiselect_endpos_.y / scaled_size_) * scaled_size_ - (multiselect_startpos_.y/ scaled_size_) * scaled_size_);
 
 			SDL_SetRenderDrawColor(render, 255, 255, 255, 255); // Weiß
 			SDL_RenderDrawRect(render, &multi_selection_rect_);
 
-			// set square to tileset coords
-			multi_selection_rect_.x = multi_selection_rect_.x / scaled_size_;
-			multi_selection_rect_.y = (multi_selection_rect_.y - lower_panel_.y) / scaled_size_;
-			multi_selection_rect_.w = multi_selection_rect_.w / scaled_size_;
-			multi_selection_rect_.h = multi_selection_rect_.h / scaled_size_;
+
 		}
 	}
 }
@@ -467,7 +378,7 @@ void EditorState::RenderGUI()
 		int slider_zoom = zoom_;
 		ImGui::SliderInt("Render scale", &slider_zoom, 1, 3);
 		zoom_ = static_cast<u8>(slider_zoom);
-		scaled_size_ = zoom_ * map_header_.tilesize;
+		scaled_size_ = zoom_ * map_.tilesize();
 
 		if (ImGui::Button("save map")) {
 			SaveFileDialog();

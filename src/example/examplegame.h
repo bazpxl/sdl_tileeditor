@@ -36,6 +36,8 @@ protected:
 	MapHeader map_header_{};
 	MapData map_data_{};
 
+	Map map_;
+
 	u8 zoom_						=	2;
 	u16 scaled_size_				=	zoom_ * TileSize;
 	Rect camera_map_				=	{0,0,WindowSize.x,WindowSize.x / 2};

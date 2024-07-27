@@ -163,6 +163,7 @@ add_executable( sdl_tileeditor
         src/example/examplegame.cpp
         src/example/editorstate.cpp
         src/tilemap.h
+        src/tilemap.cpp
 )
 
 target_include_directories( sdl_tileeditor

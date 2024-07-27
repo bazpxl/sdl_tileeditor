@@ -32,7 +32,7 @@ public:
 	[[nodiscard]]       bool    IsRunning()     const { return isRunning;   }
 	[[nodiscard]]       Point & GetWindowSize()       { return windowSize;  }
 	[[nodiscard]] const Point & GetWindowSize() const { return windowSize;  }
-	[[nodiscard]]		Window* GetWindow()			  { return window;		}
+	[[nodiscard]]		Window* GetWindow() const { return window;		}
 
 	explicit Game(
 		const char * windowTitle = "SDL Game",
