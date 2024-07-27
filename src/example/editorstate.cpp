@@ -159,9 +159,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 									singleselect_point.y = fixmousepos_.y - lower_panel_.y / scaled_size_;
 									multiselect_Items.clear();
 								}
-
 							}
-
 						// if mouse is NOT in LowerPanel, place last Selected Tile on current Position.
 						if((fixmousepos_.y * scaled_size_ < lower_panel_.y)	||	!isAtlasVisible()	)
 							{
@@ -178,7 +176,6 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 										const Point pos = {fixmousepos_.x + multiItem.offset.x, fixmousepos_.y + multiItem.offset.y};
 										const int dst_pos = pointToInt(pos, map_.cols());
 										map_.setTile(layer_id_, dst_pos, {selected_type, tileset_id_});
-
 									}
 								}
 							}
@@ -215,7 +212,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 									multiselect_Items.push_back({{x,y}, {0,0}});
 								}
 								multiselect_Items.push_back({{x,y},{x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y}});
-								//println("x {} y {}, offsetx {} offsety {}",x,y, x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y);
+								DebugOnly(println("x {} y {}, offsetx {} offsety {}",x,y, x-multiselect_Items[0].tileset_pos.x, y-multiselect_Items[0].tileset_pos.y);)
 							}
 						}
 						mouse_modctrl = false;
@@ -256,13 +253,11 @@ void EditorState::Update( const u32 frame, const u32 totalMSec, const float delt
 void EditorState::Render( const u32 frame, const u32 totalMSec, const float deltaT )
 {
 	RenderMap();
-
 	if(atlas_open_){
 		RenderAtlas();
 	}
 	RenderMouse();
 	RenderGUI();
-
 }
 
 void EditorState::RenderMap() {
@@ -326,9 +321,7 @@ void EditorState::RenderAtlas()
 			   lower_panel_.y + relative_pos.y * scaled_size_,
 			   scaled_size_, scaled_size_
 		   };
-
 			SDL_RenderCopy(render, map_.getTileset(tileset_id_).texture.get(), &srcRect, &dstRect);
-
 			// check if multi or single selection
 			if(multiselect_Items.empty())
 			{
@@ -359,8 +352,9 @@ void EditorState::RenderMouse() {
 	};
 	SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &mouse_dstRect);
 
-	if(mouse_modctrl){
-		{
+	if(mouse_modctrl)
+	{
+
 			// set multiselection square to render coords
 			multiselection_.x = std::min((mselect_startp_.x / scaled_size_) * scaled_size_, (mselect_endp_.x / scaled_size_)*scaled_size_);
 			multiselection_.y = std::min((mselect_startp_.y/ scaled_size_) * scaled_size_, (mselect_endp_.y / scaled_size_)*scaled_size_);
@@ -370,19 +364,15 @@ void EditorState::RenderMouse() {
 			SDL_SetRenderDrawColor(render, 255, 255, 255, 255); // Weiß
 			SDL_RenderDrawRect(render, &multiselection_);
 
-
-		}
 	}
 }
 
 void EditorState::RenderGUI()
 {
 #ifdef IMGUI
-
 	ImGui_ImplSDLRenderer2_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
-
 
 	if(game.imgui_window_active)
 	{
@@ -429,5 +419,6 @@ void EditorState::RenderGUI()
 
 	}
 #endif
+}
 
-}}
+}
