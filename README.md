@@ -4,7 +4,7 @@ Tile editor based on sdl_basegame from [SDL_Basegame](https://github.com/sor/sdl
 
 start with map.json in assets folder
 
-![Screenshot](asset/screenshoteditor.png "Screenshot SDL_Tileeditor")
+![Screenshot](doc/multiselectScreenshot.png "Screenshot from SDL_Tileeditor stamp tool")
 
 ## debug-shortcuts:
 

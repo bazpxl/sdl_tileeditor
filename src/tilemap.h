@@ -4,14 +4,11 @@
 #include "global.h"
 #include "nlohmann/json.hpp"
 
-
 namespace BzlGame
 {
-
 constexpr u16 MapRows		= 50;
 constexpr u16 MapCols		= 50;
 constexpr u16 TileSize		= 32;
-
 constexpr u8 LayerNumb		=  3;
 constexpr u8 CameraSpeed	=  4;
 constexpr u8 EmptyTileVal	= 255;
@@ -27,15 +24,12 @@ struct TileSet
 	SharedPtr<Texture> texture;
 	Point size;
 	string path;
-
 };
 
 /// generate with these macro inline serialization function, to and from JSON for Tile
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, asset_id)
-
-inline int pointToInt( Point r, int xMax ) { return r.x + r.y * xMax; }
-inline Point intToPoint( int s, int xMax ) { return Point { s % xMax, s / xMax }; }
-
+inline int pointToInt(const Point r, const int xMax ) { return r.x + r.y * xMax; }
+inline Point intToPoint(const int s, const int xMax ) { return { s % xMax, s / xMax }; }
 
 class Map
 {
@@ -49,14 +43,12 @@ private:
 	u8  layer_numb_{};
 public:
 	// ctor empty map without tilesets
-	explicit Map(const u16 rows = MapRows, const u16 cols = MapCols,
-				const u16 tilesize = TileSize, const u8 layer_numb = LayerNumb)
-		: rows_(rows),
-		  cols_(cols),
-		  tilesize_(tilesize),
-		  layer_numb_(layer_numb)
+	explicit Map(const u16 rows = MapRows,		const u16 cols	= MapCols,
+				 const u16 tilesize = TileSize, const u8  layer_numb = LayerNumb)
+		: rows_(rows), cols_(cols),
+		  tilesize_(tilesize), layer_numb_(layer_numb)
 	{
-		Vector<Vector<Tile>> tiles_
+		tiles_ =
 		{
 			static_cast <size_t>(layer_numb)-1,
 			Vector<Tile>(rows*cols,
@@ -70,12 +62,14 @@ public:
 		: rows_(MapRows), cols_(MapCols),
 		  tilesize_(TileSize), layer_numb_(LayerNumb)
 	{
-		Vector<Vector<Tile>> tiles_ {static_cast <size_t>(layer_numb_)-1, Vector<Tile>(rows_*cols_,{EmptyTileVal,0})};
+		tiles_ =	{static_cast <size_t>(layer_numb_)-1, Vector<Tile>(rows_*cols_,{EmptyTileVal,0})};
 		ReadJson(path, render);
 	}
 
 	void ReadJson(const string & path, Renderer * render);
 	void WriteJson(const string & path);
+
+
 
 	void AddTileset(const SharedPtr<Texture> & texture,const Point size, const string& path)
 	{
@@ -99,7 +93,7 @@ public:
 
 
 	[[nodiscard]] Vector<Tile>			&			getLayer(const int index)			 {	return tiles_.at(index);	}
-	[[nodiscard]] Vector<Vector<Tile>>	&			get_tiles()							 {	return tiles_;				}
+	[[nodiscard]] Vector<Vector<Tile>>	&			getTileVec()							 {	return tiles_;				}
 	[[nodiscard]] Vector<TileSet>		&			getTilesets()						 {	return tilesets_;			}
 	[[nodiscard]] TileSet				&			getTileset(const int id)			 {	return tilesets_[id];		}
 	[[nodiscard]] Point								getTilesetSize(const int id)	const{	return tilesets_[id].size;	}

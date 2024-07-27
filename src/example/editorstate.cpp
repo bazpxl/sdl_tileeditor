@@ -5,11 +5,16 @@
 
 #include "examplegame.h"
 
+namespace BzlGame
+{
+
 void EditorState::Init()
 {
 	gui_texture_ = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png");
 
 	OpenFileDialog();
+
+	scaled_size_ =	zoom_ * TileSize;
 }
 
 void EditorState::UnInit(){}
@@ -83,7 +88,6 @@ void EditorState::OpenFileDialog()
 {
 	nfdchar_t *outPath = nullptr;
 	const nfdresult_t result = NFD_OpenDialog( nullptr, nullptr, &outPath );
-
 	if ( result == NFD_OKAY )
 	{
 		map_.ReadJson(outPath, render);
@@ -145,8 +149,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 						if((fixmousepos_.y * scaled_size_  >= lower_panel_.y)	&&	isAtlasVisible())
 							{
 								// check if ctrl is pressed for multiselect-start
-								const Uint8* keystate = SDL_GetKeyboardState(nullptr);
-								if (keystate[SDL_SCANCODE_LCTRL])
+								if (const Uint8* keystate = SDL_GetKeyboardState(nullptr); keystate[SDL_SCANCODE_LCTRL])
 								{
 									mouse_modctrl = true;
 									mselect_startp_ = {event.button.x, event.button.y};
@@ -169,7 +172,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 									map_.setTile(layer_id_, dst_pos, {selected_type, tileset_id_});
 								}else
 								{
-									for(auto & multiItem : multiselect_Items)
+									for(const auto & multiItem : multiselect_Items)
 									{
 										const u16 selected_type = static_cast<u16>(pointToInt(multiItem.tileset_pos, map_.getTilesetSize(tileset_id_).x / map_.tilesize()));
 										const Point pos = {fixmousepos_.x + multiItem.offset.x, fixmousepos_.y + multiItem.offset.y};
@@ -264,7 +267,7 @@ void EditorState::Render( const u32 frame, const u32 totalMSec, const float delt
 
 void EditorState::RenderMap() {
 	const u16 tilesize = map_.tilesize();
-	for( auto & lay : map_.get_tiles())
+	for( auto & lay : map_.getTileVec())
 	{
 		for(int tile = 0; tile < lay.size(); tile++)
 		{
@@ -427,4 +430,4 @@ void EditorState::RenderGUI()
 	}
 #endif
 
-}
+}}

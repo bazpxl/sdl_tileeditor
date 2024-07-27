@@ -2,6 +2,8 @@
 #include <imgui.h>
 
 #include "examplegame.h"
+namespace BzlGame
+{
 
 ExampleGame::ExampleGame()
 	: Game( "BZ_tilemap_editor", WindowSize, true )
@@ -45,4 +47,6 @@ bool ExampleGame::HandleEvent( const Event event )
 			break;
 	}
 	return Game::HandleEvent( event );
+}
+
 }

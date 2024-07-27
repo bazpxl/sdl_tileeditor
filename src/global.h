@@ -103,7 +103,7 @@ namespace BzlGame
 
 	/// Returns empty Texture with texture access
 	inline SharedPtr<Texture>
-	CreateSharedTexture(SDL_Renderer *renderer, Point size)
+	CreateSharedTexture(SDL_Renderer *renderer, const Point size)
 	{
 		Texture* texture = SDL_CreateTexture(
 			renderer,
@@ -114,7 +114,7 @@ namespace BzlGame
 	}
 
 	inline SharedPtr<Renderer>
-	CreateSharedRenderer(const SharedPtr<Window>& window, int index, Uint32 flags)
+	CreateSharedRenderer(const SharedPtr<Window>& window, const int index, const Uint32 flags)
 	{
 		Renderer* renderer = SDL_CreateRenderer(window.get(), index, flags);
 		if(renderer == nullptr) throw std::runtime_error("ERROR: Could not create renderer.\n");
@@ -122,7 +122,7 @@ namespace BzlGame
 	}
 
 	inline SharedPtr<Window>
-	CreateSharedWindow(const char* title, int x, int y, int w, int h, Uint32 flags)
+	CreateSharedWindow(const char* title, const int x, const int y, const int w, const int h, const Uint32 flags)
 	{
 		Window* window = SDL_CreateWindow(title, x, y, w, h, flags);
 		if(!window) throw std::runtime_error("ERROR: Could not create window.\n");
@@ -141,7 +141,7 @@ namespace BzlGame
 #ifdef FINAL
 #define BasePath ""             // Put the binary in the root folder, parallel to assets/
 #else
-#define BasePath "../../../"    //    out/build/${architecture}-${configuration}
+#define BasePath "../../"    //    out/build/${architecture}-${configuration}
                                 // OR build/${configuration}-${compiler}/bin
 #endif
 
