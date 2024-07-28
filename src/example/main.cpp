@@ -3,8 +3,6 @@
 #include "examplegame.h"
 
 
-
-
 extern "C"
 int main( int argc, char * argv [] )
 try

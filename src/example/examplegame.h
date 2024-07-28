@@ -10,7 +10,7 @@ namespace BzlGame {
 	class ExampleGame;
 	class EditorState;
 
-	// saves position in tileset and offset to the first MultiSelectItem / root item.
+	// save position in tileset and offset to the first MultiSelectItem / root item.
 	// needed for stamp multi-tile insert
 	struct MultiSelectItem {
 		Point tileset_pos;
@@ -32,11 +32,10 @@ namespace BzlGame {
 		bool HandleEvent( const Event event ) override;
 	};
 
-
 	class EditorState : public GameState
 	{
 	protected:
-		int HalfWindowHeight = WindowSize.y / 2;
+		const int HalfWindowHeight = WindowSize.y / 2;
 
 		Vector<MultiSelectItem> multiselect_Items;
 		SharedPtr<Texture> gui_texture_ = nullptr;
@@ -55,7 +54,7 @@ namespace BzlGame {
 		Point mselect_endp_				=	{ 0, HalfWindowHeight };
 		Point fixmousepos_				=	{ 0, 0};
 
-		u16 scaled_size_{};
+		u16 scaler_{};
 		u8 zoom_						=	1;
 
 		u8 layer_id_					=	LayerNumb - 1;
@@ -64,7 +63,11 @@ namespace BzlGame {
 		bool atlas_open_				=	true;
 		bool mouse_modctrl				=	false;
 
-		[[nodiscard]] bool isAtlasVisible() const { return atlas_open_;	}
+		[[nodiscard]] bool isAtlasVisible()  const		{   return atlas_open_;		}
+
+
+
+		std::string GetRelativePath(const std::string& absolutePath, const std::string& projectPath);
 
 		void InputKeyboard(const SDL_Event & event);
 		void MoveCamera(const Direction dir);
@@ -81,6 +84,8 @@ namespace BzlGame {
 	public:
 		// ctor
 		using GameState::GameState;
+
+		static std::string RemovePathBeforeAsset(const std::string& filepath);
 
 		void Init()																override;
 		void UnInit()															override;

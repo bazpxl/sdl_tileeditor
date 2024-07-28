@@ -92,7 +92,7 @@ namespace BzlGame
 		void operator()(Texture *p)   const { SDL_DestroyTexture(p);    }
 	};
 
-	/// Returns from path loaded texture as shared_ptr with individual deleter
+	/// load asset from path and return as SharedPtr with individual Deleter
 	inline SharedPtr<Texture>
 	CreateSharedTexture(SDL_Renderer *renderer, const char * const file)
 	{
@@ -133,14 +133,19 @@ namespace BzlGame
 
 // _MSC_VER is also true for Clang on Windows, which is fine, but we might need a branch for CLion vs Visual Studio
 #ifdef _MSC_VER
-//#define BasePath "../../../"    // out/build/${architecture}-${configuration}
+#define BasePath "../../"    // out/build/${architecture}-${configuration}
 #else
 //#define BasePath "../"          // cmake-build-${configuration}
+#endif
+
+#ifdef __linux__
+#define "../../../"
 #endif
 
 #ifdef FINAL
 #define BasePath ""             // Put the binary in the root folder, parallel to assets/
 #else
+
 #define BasePath "../../"    //    out/build/${architecture}-${configuration}
                                 // OR build/${configuration}-${compiler}/bin
 #endif

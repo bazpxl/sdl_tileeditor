@@ -4,7 +4,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer2.h>
 #include <imgui_impl_sdl2.h>
-namespace BzlGame{
+using namespace BzlGame;
 
 Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 {
@@ -271,4 +271,4 @@ void Game::OutputPerformanceInfo( const TimePoint current, const Duration needed
 		default: break;
 	}
 }
-}
+

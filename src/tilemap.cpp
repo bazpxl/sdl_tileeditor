@@ -2,9 +2,14 @@
 // Created by bzl on 27.07.24.
 //
 #include "tilemap.h"
+using namespace BzlGame;
 
-namespace BzlGame
-{
+
+#include <iostream>
+#include <filesystem>
+#include <nfd.h>
+
+
 
 void Map::ReadJson(const string & path, Renderer * render)
 {
@@ -61,6 +66,3 @@ void Map::WriteJson(const string & path)
 }
 
 
-
-
-}
