@@ -60,7 +60,6 @@ void EditorState::SaveFileDialog()
 		printf("Error: %s\n", NFD_GetError() );	)
 	}
 }
-
 void EditorState::OpenAssetFileDialog()
 {
 	nfdchar_t *outPath = nullptr;
@@ -71,8 +70,8 @@ void EditorState::OpenAssetFileDialog()
 		SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath);
 		Point size;
 
-		string absolutpath = outPath;
-		string relativpath = RemovePathBeforeAsset(absolutpath);
+		const string absolutpath = outPath;
+		const string relativpath = RemovePathBeforeAsset(absolutpath);
 
 		SDL_QueryTexture(asset_texture.get(), nullptr, nullptr, &size.x, &size.y);
 		map_.AddTileset(asset_texture, size, relativpath);
@@ -86,7 +85,6 @@ void EditorState::OpenAssetFileDialog()
 		println("Error: {}", NFD_GetError() );	)
 	}
 }
-
 void EditorState::OpenFileDialog()
 {
 	nfdchar_t *outPath = nullptr;
@@ -130,7 +128,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 		{
 			case SDL_KEYDOWN:
 				{
-					InputKeyboard(event);
+					HandleKeyboard(event);
 					break;
 				}
 			case SDL_MOUSEMOTION:
@@ -186,11 +184,13 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 					}else if(event.button.button == SDL_BUTTON_RIGHT)
 					{
 						// if mouse is in valid Panel, click to remove tile type and replace it with EmptyTileVal.
-						if((fixmousepos_.y * scaler_ < lower_panel_.y) || !isAtlasVisible()	)
+						if(isMouseOnMap() || !isAtlasVisible()	)
 						{
 							const int dst_pos = pointToInt(fixmousepos_, map_.cols());
 							map_.setTile(layer_id_, dst_pos, {EmptyTileVal, tileset_id_});
 						}
+
+
 					}
 					break;
 				}
@@ -246,7 +246,7 @@ std::string EditorState::GetRelativePath(const std::string &absolutePath, const 
 	return relPath.string();
 }
 
-void EditorState::InputKeyboard(const SDL_Event & event)
+void EditorState::HandleKeyboard(const SDL_Event & event)
 {
 	const Keysym & what_key = event.key.keysym;
 	if( what_key.scancode == SDL_SCANCODE_F5 && event.key.repeat == 0 ){
@@ -448,11 +448,11 @@ void EditorState::RenderGUI()
 #endif
 }
 
-std::string EditorState::RemovePathBeforeAsset(const std::string &filepath) {
+string EditorState::RemovePathBeforeAsset(const string &filepath) {
 
-	const std::string marker = "asset";
+	const string marker = "asset";
 	size_t pos = filepath.find(marker);
-	if (pos != std::string::npos) {
+	if (pos != string::npos) {
 		return filepath.substr(pos);
 	} else {
 		// Falls "asset" nicht im Pfad gefunden wurde, den ursprünglichen Pfad zurückgeben

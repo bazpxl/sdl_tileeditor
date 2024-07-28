@@ -4,7 +4,6 @@
 #include <gamebase.h>
 #include <tilemap.h>
 
-
 namespace BzlGame {
 
 	class ExampleGame;
@@ -63,29 +62,29 @@ namespace BzlGame {
 		bool atlas_open_				=	true;
 		bool mouse_modctrl				=	false;
 
+	public:
+		// ctor
+		using GameState::GameState;
+
+
 		[[nodiscard]] bool isAtlasVisible()  const		{   return atlas_open_;		}
+		[[nodiscard]] bool isMouseOnMap() const								{	return ((fixmousepos_.y * scaler_) < lower_panel_.y);	}
 
+		string GetRelativePath(const string& absolutePath, const string& projectPath);
+		static string RemovePathBeforeAsset(const string& filepath);
 
-
-		std::string GetRelativePath(const std::string& absolutePath, const std::string& projectPath);
-
-		void InputKeyboard(const SDL_Event & event);
+		void HandleKeyboard(const SDL_Event & event);
 		void MoveCamera(const Direction dir);
 
 		void OpenFileDialog();
 		void SaveFileDialog();
+
 		void OpenAssetFileDialog();
 
 		void RenderMap();
 		void RenderAtlas();
 		void RenderMouse();
 		void RenderGUI();
-
-	public:
-		// ctor
-		using GameState::GameState;
-
-		static std::string RemovePathBeforeAsset(const std::string& filepath);
 
 		void Init()																override;
 		void UnInit()															override;

@@ -4,12 +4,7 @@
 #include "tilemap.h"
 using namespace BzlGame;
 
-
-#include <iostream>
 #include <filesystem>
-#include <nfd.h>
-
-
 
 void Map::ReadJson(const string & path, Renderer * render)
 {
