@@ -34,23 +34,24 @@ namespace BzlGame {
 	class EditorState : public GameState
 	{
 	protected:
-		const int HalfWindowHeight = WindowSize.y / 2;
-
 		Vector<MultiSelectItem> multiselect_Items;
 		SharedPtr<Texture> gui_texture_ = nullptr;
 
 		Map map_;
 
-		Rect multiselection_{};
-		Rect camera_map_				=	{0,0,WindowSize.x,HalfWindowHeight};
-
 		// rendering borders map/atlas
-		Rect upper_panel_				=	{ 0,0,WindowSize.x,HalfWindowHeight};
-		Rect lower_panel_				=	{ 0,HalfWindowHeight,WindowSize.x,HalfWindowHeight};
+		Rect upper_panel_				=	{ 0,0,WindowSize.x,WindowSize.y / 2};
+		Rect lower_panel_				=	{ 0,WindowSize.y / 2,WindowSize.x,WindowSize.y / 2};
+
+		Rect  camera_					=	{0,0,WindowSize.x,WindowSize.y / 2};
+		Point camera_startpos{};
+		Point camera_endpos{};
+
+		Rect  mselect_rect_{};
+		Point mselect_startp_			=	{ 0, WindowSize.y / 2 };
+		Point mselect_endp_				=	{ 0, WindowSize.y / 2 };
 
 		Point singleselect_point		=   { 0, 0};
-		Point mselect_startp_			=	{ 0, HalfWindowHeight };
-		Point mselect_endp_				=	{ 0, HalfWindowHeight };
 		Point fixmousepos_				=	{ 0, 0};
 
 		u16 scaler_{};
@@ -60,17 +61,17 @@ namespace BzlGame {
 		u8 tileset_id_					=	0;
 
 		bool atlas_open_				=	true;
-		bool mouse_modctrl				=	false;
+		bool leftclick_modctrl_			=	false;
+		bool rightclick_				=	false;
 
 	public:
 		// ctor
 		using GameState::GameState;
 
+		[[nodiscard]] bool isAtlasVisible()  const	{   return atlas_open_;		}
+		[[nodiscard]] bool isMouseOnMap()	 const	{	return ((fixmousepos_.y * scaler_) < lower_panel_.y);	}
 
-		[[nodiscard]] bool isAtlasVisible()  const		{   return atlas_open_;		}
-		[[nodiscard]] bool isMouseOnMap() const								{	return ((fixmousepos_.y * scaler_) < lower_panel_.y);	}
-
-		string GetRelativePath(const string& absolutePath, const string& projectPath);
+		static string GetRelativePath(const string& absolutePath, const string& projectPath);
 		static string RemovePathBeforeAsset(const string& filepath);
 
 		void HandleKeyboard(const SDL_Event & event);

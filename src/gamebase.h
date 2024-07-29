@@ -9,6 +9,7 @@ namespace BzlGame{
 	class Game;
 	class GameState;
 
+	constexpr Point WindowSize	=  {	1920, 1080	};
 	class Game
 	{
 	protected:
