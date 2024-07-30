@@ -4,16 +4,15 @@ simple Tileeditor for 2D-games based on sdl_basegame from [SDL_Basegame](https:/
 
 Currently implemented functions are:
 
-* Loading and saving maps in Json files.
 * Open and save files via nativefiledialog.
-* Add more assets and switch between them using the ImGui slider.
+* Add more assets and switch between them using the Listbox.
 * Change the global render scaling with Dear ImGui.
 * Select a tile in the active tileset by clicking on it and place it individually on the map grid.
 * Hold the mouse button + Ctrl to select a square from several tiles in the atlas to place them grouped on the map.
 * Resizing and/or hiding the TileAtlas panel.
 * Changing the active rendering layer
 
-![Screenshot](doc/multiselectScreenshot.png "Screenshot from SDL_Tileeditor stamp tool")
+![Screenshot](doc/scren2.png "Screenshot from SDL_Tileeditor stamp tool")
 
 #### Annotation
 
