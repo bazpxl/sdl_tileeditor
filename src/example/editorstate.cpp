@@ -44,19 +44,14 @@ void EditorState::SaveFileDialog()
 	nfdchar_t *outPath = nullptr;
 	const nfdresult_t result = NFD_SaveDialog( nullptr, nullptr, &outPath );
 
-	if ( result == NFD_OKAY )
-	{
-		GetRelativePath(string(outPath),string(BasePath));
+	if ( result == NFD_OKAY ) {
+		GetRelativePath(string(outPath), string(BasePath));
 		map_.WriteJson(outPath);
 		free(outPath);
-	}
-	else if ( result == NFD_CANCEL )
-	{
+	} else if ( result == NFD_CANCEL ) {
 		DebugOnly(
-		println("Canceled by user.");	)
-	}
-	else
-	{
+			println("Canceled by user.");)
+	} else{
 		DebugOnly(
 		printf("Error: %s\n", NFD_GetError() );	)
 	}
@@ -69,6 +64,7 @@ void EditorState::OpenAssetFileDialog()
 	if ( result == NFD_OKAY )
 	{
 		SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath);
+		assert(asset_texture != nullptr);
 		Point size;
 
 		const string absolutpath = outPath;
@@ -190,6 +186,13 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 						{
 							const int dst_pos = pointToInt(fixmousepos_, map_.cols());
 							map_.setTile(layer_id_, dst_pos, {EmptyTileVal, tileset_id_});
+							// if
+						}else if(!isMouseOnMap() || isAtlasVisible())
+						{
+							rightclick_ = true;
+							camera_startpos.x = event.button.x;
+							camera_startpos.y = event.button.y;
+
 						}
 
 
@@ -203,9 +206,8 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 						// Set square to tileset coords
 						const int startX = mselect_startp_.x / scaler_;
 						const int startY = (mselect_startp_.y - lower_panel_.y) / scaler_;
-						const int endX = mselect_endp_.x / scaler_;
-						const int endY = (mselect_endp_.y - lower_panel_.y) / scaler_;
-
+						const int endX   = mselect_endp_.x / scaler_;
+						const int endY   = (mselect_endp_.y - lower_panel_.y) / scaler_;
 
 						multiselect_Items.clear();
 						for (int x = std::min(startX, endX); x <= std::max(startX, endX); ++x)
@@ -356,7 +358,7 @@ void EditorState::RenderAtlas()
 					((mselect_rect_.h /scaler_ )* scaler_) + map_.tilesize()
 				};
 				//std::cout << "  x " << dst_rect.x << "  y " << dst_rect.y << "  w " << dst_rect.w << "  h " << dst_rect.h << std::endl;
-				//println("x{} y{} w{} h{}", multiselection_.x,multiselection_.y,multiselection_.w,multiselection_.h);
+				//println("x{} y{} w{} h{}", mselect_rect_.x,mselect_rect_.y,mselect_rect_.w,mselect_rect_.h);
 				SDL_RenderDrawRect(render, &dst_rect);
 			}
 		}
@@ -392,36 +394,51 @@ void EditorState::RenderMouse() {
 void EditorState::RenderGUI()
 {
 #ifdef IMGUI
+
+	constexpr int MaxSize = WindowSize.y;
+	constexpr int MinSize = 0;
+	const int maxTilesets = static_cast<int>(map_.getTilesets().size()-1);
+
 	ImGui_ImplSDLRenderer2_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
-
+	//ImGui::ShowDemoWindow();
+	//ImGui::ShowUserGuide();
+	ImGui::Begin("ImGUI window", &game.imgui_window_active);
 	if(game.imgui_window_active)
 	{
-		constexpr int MaxSize = WindowSize.y;
-		constexpr int MinSize = 0;
-		const int maxTilesets = static_cast<int>(map_.getTilesets().size()-1);
+		if (ImGui::BeginListBox("Tilesets##setlistbox")) {
+			for (int i = 0; i < map_.getTilesets().size(); ++i)
+			{
+				const bool is_selected = (i == tileset_id_); // Beispiel: markiere das erste Element
+				if (ImGui::Selectable(std::to_string(i).c_str(), is_selected))
+				{
+					tileset_id_ = i;
+				}
 
-		ImGui::Begin("ImGUI window", &game.imgui_window_active);
-		if(ImGui::Button("add tileset"))
-		{
-			OpenAssetFileDialog();
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
 		}
-		ImGui::Checkbox("Show Atlas", &atlas_open_);
+		ImGui::EndListBox();
+		ImGui::NewLine();
+		if(ImGui::Button("add")) {
+			OpenAssetFileDialog();
+		};
+		ImGui::SameLine();
+		if(ImGui::Button("delete")) {
+			map_.RemoveTileset(layer_id_);
+		}
 
-		int slider_assets = tileset_id_;
-		ImGui::SliderInt("active Atlas", &slider_assets, MinSize,  maxTilesets);
-		tileset_id_ = slider_assets;
+		ImGui::Separator();
 
 		// atlas panel slider
 		ImGui::SliderInt("Atlas height", &lower_panel_.h, MinSize, MaxSize);
 		lower_panel_.y = ((MaxSize - lower_panel_.h) / scaler_ )* scaler_;
 		upper_panel_.h = WindowSize.y - lower_panel_.h;
 
-		// Control current target Layer
-		int slider_layer = layer_id_;
-		ImGui::SliderInt("active layer:", &slider_layer, 0, LayerNumb-1);
-		layer_id_ = static_cast<u8>(slider_layer);
+		ImGui::Checkbox("show/hide##atlas", &atlas_open_);
+		ImGui::NewLine();
 
 		// scaling slider
 		int slider_zoom = zoom_;
@@ -429,17 +446,49 @@ void EditorState::RenderGUI()
 		zoom_ = static_cast<u8>(slider_zoom);
 		scaler_ = zoom_ * map_.tilesize();
 
+		ImGui::NewLine();
+
+
+		if (ImGui::BeginCombo("Layer",std::to_string(layer_id_).c_str())) {
+			for (int i = 0; i < map_.getTileVec().size(); ++i)
+			{
+				const bool is_selected = (i == layer_id_); // Beispiel: markiere das erste Element
+				if (ImGui::Selectable(std::to_string(i).c_str(), is_selected))
+				{
+					layer_id_ = i;
+				}
+
+
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::NewLine();
+
+		ImGui::Button("add"); //remove size argument (ImVec2) to auto-resize
+
+		ImGui::SameLine();
+
+		ImGui::Button("delete" ); //remove size argument (ImVec2) to auto-resize
+
+		ImGui::NewLine();
+
 		if (ImGui::Button("save map")) {
 			SaveFileDialog();
 		}
-
 		ImGui::End();
 		ImGui::Render();
 		SDL_SetRenderDrawColor(render, static_cast <u8>(0.45f * 255), static_cast <u8>(0.55f * 255), static_cast <u8>(0.60f * 255), static_cast <u8>(1.00f * 255));
 
 		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
-
 	}
+
+
+
+
+
+
+
 #endif
 }
 
