@@ -351,9 +351,9 @@ void EditorState::RenderAtlas()
 				SDL_SetRenderDrawColor(render, 255,255,255,255); // white
 				const Rect dst_rect = {
 					(mselect_rect_.x / scaler_ ) * scaler_,
-					(mselect_rect_.y   / scaler_) * scaler_ + lower_panel_.y,
-					(mselect_rect_.w / scaler_) * scaler_ ,
-					(mselect_rect_.h /scaler_ )* scaler_
+					(mselect_rect_.y   / scaler_) * scaler_,
+					((mselect_rect_.w / scaler_) * scaler_ ) + map_.tilesize(),
+					((mselect_rect_.h /scaler_ )* scaler_) + map_.tilesize()
 				};
 				//std::cout << "  x " << dst_rect.x << "  y " << dst_rect.y << "  w " << dst_rect.w << "  h " << dst_rect.h << std::endl;
 				//println("x{} y{} w{} h{}", multiselection_.x,multiselection_.y,multiselection_.w,multiselection_.h);
