@@ -19,8 +19,7 @@ void EditorState::UnInit(){}
 void EditorState::MoveCamera(const Direction dir)
 {
 	Point winSize = game.GetWindowSize();
-	switch (dir)
-	{
+	switch (dir){
 		case Direction::Up:
 			if(camera_.y > CameraSpeed)				{		camera_.y -= CameraSpeed;		}
 			break;
@@ -388,16 +387,13 @@ void EditorState::RenderMouse() {
 		};
 		SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &mouse_dstRect);
 	}
-
 }
 
 void EditorState::RenderGUI()
 {
 #ifdef IMGUI
-
 	constexpr int MaxSize = WindowSize.y;
 	constexpr int MinSize = 0;
-	const int maxTilesets = static_cast<int>(map_.getTilesets().size()-1);
 
 	ImGui_ImplSDLRenderer2_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
@@ -448,49 +444,38 @@ void EditorState::RenderGUI()
 
 		ImGui::NewLine();
 
-
 		if (ImGui::BeginCombo("Layer",std::to_string(layer_id_).c_str())) {
 			for (int i = 0; i < map_.getTileVec().size(); ++i)
 			{
-				const bool is_selected = (i == layer_id_); // Beispiel: markiere das erste Element
+				const bool is_selected = (i == layer_id_);
 				if (ImGui::Selectable(std::to_string(i).c_str(), is_selected))
 				{
 					layer_id_ = i;
 				}
-
-
 			}
 			ImGui::EndCombo();
 		}
 
 		ImGui::NewLine();
-
-		ImGui::Button("add"); //remove size argument (ImVec2) to auto-resize
+		ImGui::Button("add");
 
 		ImGui::SameLine();
-
-		ImGui::Button("delete" ); //remove size argument (ImVec2) to auto-resize
+		ImGui::Button("delete" );
 
 		ImGui::NewLine();
-
 		if (ImGui::Button("save map")) {
 			SaveFileDialog();
 		}
+
 		ImGui::End();
 		ImGui::Render();
 		SDL_SetRenderDrawColor(render, static_cast <u8>(0.45f * 255), static_cast <u8>(0.55f * 255), static_cast <u8>(0.60f * 255), static_cast <u8>(1.00f * 255));
 
 		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 	}
-
-
-
-
-
-
-
 #endif
 }
+
 
 string EditorState::RemovePathBeforeAsset(const string &filepath) {
 

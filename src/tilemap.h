@@ -69,17 +69,17 @@ public:
 	void ReadJson(const string & path, Renderer * render);
 	void WriteJson(const string & path);
 
-
-
 	void AddTileset(const SharedPtr<Texture> & texture,const Point size, const string& path)
 	{
 		tilesets_.push_back({texture, size, path});
+		layer_numb_++;
 	}
 
 	void RemoveTileset(const int id)
 	{
 		assert(tilesets_.size() > id);
 		tilesets_.erase(tilesets_.begin() + id);
+		layer_numb_ = tilesets_.size();
 	}
 
 	void setTile(const u8 layer, const u16 id, const Tile tile)
