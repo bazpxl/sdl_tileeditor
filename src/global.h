@@ -135,12 +135,9 @@ namespace BzlGame
 #ifdef _MSC_VER
 #define BasePath "../../"    // out/build/${architecture}-${configuration}
 #else
-//#define BasePath "../"          // cmake-build-${configuration}
+#define BasePath "../"          // cmake-build-${configuration}
 #endif
 
-#ifdef __linux__
-#define "../../../"
-#endif
 
 #ifdef FINAL
 #define BasePath ""             // Put the binary in the root folder, parallel to assets/
