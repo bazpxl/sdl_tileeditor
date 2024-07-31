@@ -50,7 +50,7 @@ public:
 	{
 		tiles_ =
 		{
-			static_cast <size_t>(layer_numb)-1,
+			static_cast <size_t>(layer_numb),
 			Vector<Tile>(rows*cols,
 			{EmptyTileVal,0})
 		};

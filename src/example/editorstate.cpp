@@ -76,6 +76,7 @@ void EditorState::OpenAssetFileDialog()
 	else if ( result == NFD_CANCEL ){
 		DebugOnly(
 		println("Canceled by user. Load standard-map");	)
+		map_ = Map();
 	}else{
 		DebugOnly(
 		println("Error: {}", NFD_GetError() );	)
@@ -129,7 +130,6 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 				}
 			case SDL_MOUSEMOTION:
 				{
-
 					if(leftclick_modctrl_)
 					{
 						mselect_endp_.x = event.motion.x;
@@ -191,10 +191,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 							rightclick_ = true;
 							camera_startpos.x = event.button.x;
 							camera_startpos.y = event.button.y;
-
 						}
-
-
 					}
 					break;
 				}
@@ -237,7 +234,6 @@ string EditorState::GetRelativePath(const std::string &absolutePath, const std::
 	if (!projPath.is_absolute()) {
 		projPath = fs::absolute(projPath);
 	}
-
 	const fs::path relPath = fs::relative(absPath, projPath);
 	return relPath.string();
 }
@@ -322,8 +318,8 @@ void EditorState::RenderMap() {
 
 void EditorState::RenderAtlas()
 {
-	assert(WindowSize.x > map_.getTilesetSize(tileset_id_).x);
-	assert(WindowSize.y > map_.getTilesetSize(tileset_id_).y);
+
+	if(!map_.getTilesets().empty()){
 		const int tileNumb = (map_.getTilesetSize(tileset_id_).x * map_.getTilesetSize(tileset_id_).y )/ map_.tilesize();
 		for(int i = 0; i < tileNumb; i++)
 		{
@@ -361,6 +357,7 @@ void EditorState::RenderAtlas()
 				SDL_RenderDrawRect(render, &dst_rect);
 			}
 		}
+	}
 }
 
 void EditorState::RenderMouse() {
@@ -456,11 +453,11 @@ void EditorState::RenderGUI()
 			ImGui::EndCombo();
 		}
 
-		ImGui::NewLine();
-		ImGui::Button("add");
+		//ImGui::NewLine();
+		//ImGui::Button("add");
 
-		ImGui::SameLine();
-		ImGui::Button("delete" );
+		//ImGui::SameLine();
+		//ImGui::Button("delete" );
 
 		ImGui::NewLine();
 		if (ImGui::Button("save map")) {
