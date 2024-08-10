@@ -40,7 +40,7 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 		exit( 5 );
 	}
 
-	constexpr SDL_WindowFlags flags = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	constexpr SDL_WindowFlags flags = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
 
 	window = SDL_CreateWindow(
 		windowTitle,
