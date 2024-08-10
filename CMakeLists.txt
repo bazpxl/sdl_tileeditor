@@ -100,6 +100,7 @@ find_package( fmt                           CONFIG REQUIRED )
 find_package( nlohmann_json                 CONFIG REQUIRED )
 find_package( imgui                         CONFIG REQUIRED )
 find_package( unofficial-nativefiledialog   CONFIG REQUIRED )
+#find_package( Stb                            REQUIRED )
 
 
 # Why does MSVC exist, but not CLANG or GCC?
@@ -166,12 +167,14 @@ add_executable( sdl_tileeditor
         src/tilemap.cpp
 )
 
+
 target_include_directories( sdl_tileeditor
         PRIVATE
         src
         ${SDL2_INCLUDE_DIR}
         ${FMT_INCLUDE_DIR}
-        )
+        #${STB_INCLUDE_DIRS}
+    )
 
 target_link_libraries( sdl_tileeditor
         PRIVATE
@@ -186,6 +189,5 @@ target_link_libraries( sdl_tileeditor
         $<TARGET_NAME_IF_EXISTS:OpenMP::OpenMP_CXX>
         $<TARGET_NAME_IF_EXISTS:imgui::imgui>
         nlohmann_json::nlohmann_json
-
         )
 
