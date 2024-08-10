@@ -89,7 +89,8 @@ void EditorState::OpenFileDialog()
 	const nfdresult_t result = NFD_OpenDialog( nullptr, nullptr, &outPath );
 	if ( result == NFD_OKAY )
 	{
-		map_.ReadJson(outPath, render);
+		Vector<string> asset_paths = map_.ReadJson(outPath);
+		map_.CreateAssets(asset_paths, render);
 		free(outPath);
 	}
 	else if ( result == NFD_CANCEL )

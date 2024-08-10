@@ -61,11 +61,11 @@ public:
 		  tilesize_(TileSize), layer_number_(LayerNumb)
 	{
 		tiles_ =	{static_cast <size_t>(layer_number_)-1, Vector<Tile>(rows_*cols_,{EmptyTileVal,0})};
-		ReadJson(path, render);
+		Vector<string> asset_paths_ = ReadJson(path);
+		CreateAssets(asset_paths_, render);
 	}
 
-	void ReadJson(const string & path, Renderer * render);
-	void WriteJson(const string & path);
+
 
 	void AddTileset(const SharedPtr<Texture> & texture,const Point size, const string& path)
 	{
@@ -89,6 +89,10 @@ public:
 		tiles_[layer][id] = tile;
 	}
 
+	Vector<string> ReadJson(const string & path);
+	void WriteJson(const string & path);
+
+	void CreateAssets(const Vector<string>& asset_paths, Renderer* render);
 
 	[[nodiscard]] Vector<Tile>			&			getLayer(const int index)			 {	return tiles_.at(index);	}
 	[[nodiscard]] Vector<Vector<Tile>>	&			getTileVec()							 {	return tiles_;				}

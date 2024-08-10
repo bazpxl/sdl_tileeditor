@@ -3,7 +3,7 @@
 #include <filesystem>
 using namespace BzlGame;
 
-void Map::ReadJson(const string & path, Renderer * render)
+Vector<string> Map::ReadJson(const string & path)
 {
 	std::ifstream file(path);
 	if(!file.is_open())[[unlikely]]
@@ -19,17 +19,10 @@ void Map::ReadJson(const string & path, Renderer * render)
 	layer_number_						=	j["layer_numb"].template get<u8>();
 	tiles_							=	j["tiles"].template get<Vector<Vector<Tile>>>();
 
-	for(auto & vec : asset_paths_)
-	{
-		string tmpstr = BasePath;
-		tmpstr.append(vec);
-		SharedPtr<Texture> texture_shptr = CreateSharedTexture(render, tmpstr.c_str());
-		Point size;
-		SDL_QueryTexture(texture_shptr.get(), nullptr, nullptr, &size.x, &size.y );
-		tilesets_.push_back({texture_shptr , size, vec});
 
-	}
 	file.close();
+
+	return asset_paths_;
 }
 
 void Map::WriteJson(const string & path)
