@@ -19,7 +19,7 @@ void Map::ReadJson(const string & path, Renderer * render)
 	rows_							=	j["rows"].template get<u16>();
 	cols_							=	j["cols"].template get<u16>();
 	tilesize_						=	j["tilesize"].template get<u8>();
-	layer_numb_						=	j["layer_numb"].template get<u8>();
+	layer_number_						=	j["layer_numb"].template get<u8>();
 	tiles_							=	j["tiles"].template get<Vector<Vector<Tile>>>();
 
 	for(auto & vec : asset_paths_)
@@ -47,7 +47,7 @@ void Map::WriteJson(const string & path)
 			{"rows", rows_},
 			{"cols", cols_},
 			{"tilesize", tilesize_},
-			{ "layer_numb", layer_numb_},
+			{ "layer_numb", layer_number_},
 			{"tiles", tiles_}
 	};
 
