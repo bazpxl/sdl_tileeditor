@@ -6,12 +6,6 @@
 
 namespace BzlGame
 {
-constexpr u16 MapRows		= 50;
-constexpr u16 MapCols		= 50;
-constexpr u16 TileSize		= 32;
-constexpr u8 LayerNumb		=  3;
-constexpr u8 CameraSpeed	=  4;
-constexpr u8 EmptyTileVal	= 255;
 
 struct Tile
 {
@@ -34,6 +28,10 @@ inline Point intToPoint(const int s, const int xMax ) { return { s % xMax, s / x
 class Map
 {
 private:
+	static constexpr u16 MapRows		= 50;
+	static constexpr u16 MapCols		= 50;
+	static constexpr u16 TileSize		= 32;
+
 	Vector<TileSet> tilesets_;
 	Vector<Vector<Tile>> tiles_ {LayerNumb-1, Vector<Tile>(MapRows*MapCols,{EmptyTileVal,0})};
 

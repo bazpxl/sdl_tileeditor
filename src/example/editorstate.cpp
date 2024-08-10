@@ -11,13 +11,14 @@ void EditorState::Init()
 {
 	gui_texture_ = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png");
 	OpenFileDialog();
-	scaler_ =	zoom_ * TileSize;
+	scaler_ = map_.tilesize() * zoom_;
 }
 
 void EditorState::UnInit(){}
 
 void EditorState::MoveCamera(const Direction dir)
 {
+    static constexpr u16 CameraSpeed = 4;
 	Point winSize = game.GetWindowSize();
 	switch (dir){
 		case Direction::Up:

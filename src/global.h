@@ -84,7 +84,9 @@ namespace BzlGame
 	//using std::cout, std::cin, std::cerr, std::endl;
 	using fmt::print, fmt::println, fmt::format;
 
-
+	constexpr Point WindowSize	=  {	1920, 1080	};
+	constexpr u16 EmptyTileVal	=	65535;
+	constexpr u8 LayerNumb		=	3;
 
 	struct bzDeleter{
 		void operator()(Window *p)    const { SDL_DestroyWindow(p);    }
