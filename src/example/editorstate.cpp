@@ -483,10 +483,17 @@ void EditorState::RenderGUI()
 		}
 
 		//ImGui::NewLine();
-		//ImGui::Button("add");
+		if(ImGui::Button("add##layer")) {
+			map_.AddLayer();
+			layer_id_ = map_.layer_number();
+		}
 
-		//ImGui::SameLine();
-		//ImGui::Button("delete" );
+		ImGui::SameLine();
+		if(ImGui::Button("delete##layer" )) {
+			map_.RemoveLayer(layer_id_);
+			layer_id_ = 0;
+		}
+		ImGui::Separator();
 
 		ImGui::NewLine();
 		if (ImGui::Button("save map")) {
