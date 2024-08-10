@@ -75,7 +75,7 @@ void Map::CreateAssets(const Vector<string>& asset_paths, Renderer* render) {
 		string tmpstr = BasePath;
 		tmpstr.append(vec);
 		Point size;
-		SharedPtr<Texture> texture_shptr = CreateSharedTexture(render, tmpstr.c_str(), size);
+		SharedPtr<Texture> texture_shptr = CreateSharedTexture(render, tmpstr.c_str(), &size);
 
 		tilesets_.push_back({texture_shptr , size, vec});
 	}

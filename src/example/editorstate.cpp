@@ -8,8 +8,7 @@ using namespace BzlGame;
 
 void EditorState::Init()
 {
-	Point mousesize;
-	gui_texture_ = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png",mousesize);
+	gui_texture_ = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png");
 
 	const int ntf_error = OpenFileDialog();
 	if(ntf_error == 1)
@@ -78,12 +77,11 @@ int EditorState::OpenAssetFileDialog()
 	if ( result == NFD_OKAY )
 	{
 		Point assetsize;
-		SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath, assetsize);
+		SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath, &assetsize);
 		if(asset_texture == nullptr)
 		{
 			return 1;
 		}
-
 		const string absolutpath = outPath;
 		const string relativpath = RemovePathBeforeAsset(absolutpath);
 
@@ -144,6 +142,21 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 
 		switch( event.type )
 		{
+			case SDL_WINDOWEVENT:
+			{
+				if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+					// Aktualisiere die WindowSize-Variable
+					Point windowSize;
+					SDL_GetWindowSize(game.GetWindow(), &windowSize.x, &windowSize.y);
+					lower_panel_.w = windowSize.x;
+					upper_panel_.w = windowSize.x;
+					upper_panel_.h = windowSize.y / 2;
+					lower_panel_.h = windowSize.y - upper_panel_.h;
+					lower_panel_.y = upper_panel_.h;
+
+				}
+				break;
+			}
 			case SDL_KEYDOWN:
 				{
 					HandleKeyboard(event);
@@ -292,7 +305,7 @@ void EditorState::Render( const u32 frame, const u32 totalMSec, const float delt
 		RenderAtlas();
 	}
 	RenderMouse();
-	RenderGUI();
+	RenderGui();
 }
 
 void EditorState::RenderMap() {
@@ -324,7 +337,7 @@ void EditorState::RenderMap() {
 				// check if atlas panel is activated, if true, check for lower_panel rendering border
 				if(isAtlasVisible())
 				{
-					if(dstRect.y+map_.tilesize() < lower_panel_.y)
+					if(dstRect.y+map_.tilesize() <= lower_panel_.y)
 					{
 						SDL_RenderCopy(render, map_.getTileset(lay[tile].asset_id).texture.get(), &srcRect, &dstRect);
 					}
@@ -339,8 +352,11 @@ void EditorState::RenderMap() {
 
 void EditorState::RenderAtlas(){
 	if(!map_.getTilesets().empty()){
-		const int tileNumb = (map_.getTilesetSize(tileset_id_).x * map_.getTilesetSize(tileset_id_).y )/ map_.tilesize();
-		for(int i = 0; i < tileNumb; i++)
+		SDL_SetRenderDrawColor(render, 100, 100, 100, 255);
+		SDL_RenderFillRect(render, &lower_panel_);
+
+		const int tile_number = (map_.getTilesetSize(tileset_id_).x * map_.getTilesetSize(tileset_id_).y )/ map_.tilesize();
+		for(int i = 0; i < tile_number; i++)
 		{
 
 			const Point relative_pos = intToPoint(i , map_.getTilesetSize(tileset_id_).x / map_.tilesize());
@@ -414,20 +430,63 @@ void EditorState::RenderMouse() {
 	}
 }
 
-void EditorState::RenderGUI()
+void EditorState::RenderGui_Menubar() {
+	if(ImGui::BeginMenuBar()) {
+		if (ImGui::BeginMenu("File"))
+		{
+			if(ImGui::MenuItem("Open.."))
+			{
+				map_.ClearMap();
+				const int ntf_error = OpenFileDialog();
+				if(ntf_error == 1)
+				{
+					print("NTF ERROR 1");
+					Event next_event = { .type = SDL_QUIT };
+					SDL_PushEvent( &next_event );
+				}
+			}
+
+			if(ImGui::MenuItem("Save")) {
+				const int ntf_error = SaveFileDialog();
+				if(ntf_error == 1)
+				{
+					print("NTF ERROR 1");
+					Event next_event = { .type = SDL_QUIT };
+					SDL_PushEvent( &next_event );
+				}
+			}
+			// if(ImGui::MenuItem("Save"))
+			// {
+			//
+			// }
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+}
+
+void EditorState::RenderGui()
 {
 #ifdef BZ_IMGUI_ACTIVE
-	constexpr int MaxSize = WindowSize.y;
+	int MaxSize = game.GetWindowSize().y;
 	constexpr int MinSize = 0;
+
+	ImGuiWindowFlags windowFlags = 0;
+	windowFlags |= ImGuiWindowFlags_NoTitleBar;
+	windowFlags |= ImGuiWindowFlags_MenuBar;
+	//windowFlags |= ImGuiWindowFlags_NoCollapse;
 
 	ImGui_ImplSDLRenderer2_NewFrame();
 	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
 	//ImGui::ShowDemoWindow();
 	//ImGui::ShowUserGuide();
-	ImGui::Begin("ImGUI window", &game.imgui_window_active);
+	ImGui::Begin("bazpi tools", &game.imgui_window_active, windowFlags);
+
 	if(game.imgui_window_active)
 	{
+		RenderGui_Menubar();
+
 		if (ImGui::BeginListBox("Tilesets##setlistbox")) {
 			for (size_t i = 0; i < map_.getTilesets().size(); ++i)
 			{
@@ -440,37 +499,44 @@ void EditorState::RenderGUI()
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
 			}
+			ImGui::EndListBox();
 		}
-		ImGui::EndListBox();
+
 		ImGui::NewLine();
-		if(ImGui::Button("add")) {
+		if(ImGui::Button("add##tileset")) {
 			OpenAssetFileDialog();
 		};
 		ImGui::SameLine();
-		if(ImGui::Button("delete")) {
+		if(ImGui::Button("delete##tileset")) {
 			map_.RemoveTileset(layer_id_);
 		}
 
 		ImGui::Separator();
 
 		// atlas panel slider
-		ImGui::SliderInt("Atlas height", &lower_panel_.h, MinSize, MaxSize);
-		lower_panel_.y = ((MaxSize - lower_panel_.h) / scaler_ )* scaler_;
-		upper_panel_.h = WindowSize.y - lower_panel_.h;
+		ImGui::SliderInt("Atlas height##slider", &upper_panel_.h, MinSize, MaxSize);
+
+		lower_panel_.y = (upper_panel_.h / scaler_) * scaler_;
+		lower_panel_.h = game.GetWindowSize().y - lower_panel_.y;
+		//
+		// // adjust upper panel height dependent on current lower_panel height
+		// upper_panel_.h = game.GetWindowSize().y - lower_panel_.h;
+		// // set lower_panel.y position dependent on new upper_panel height
+		// lower_panel_.y = upper_panel_.h;
 
 		ImGui::Checkbox("show/hide##atlas", &atlas_open_);
 		ImGui::NewLine();
 
 		// scaling slider
 		int slider_zoom = zoom_;
-		ImGui::SliderInt("Render scale", &slider_zoom, 1, 3);
+		ImGui::SliderInt("Render scale##slider", &slider_zoom, 1, 3);
 		zoom_ = static_cast<u8>(slider_zoom);
 		scaler_ = zoom_ * map_.tilesize();
 
 		ImGui::NewLine();
 		ImGui::Separator();
 
-		if (ImGui::BeginCombo("Layer",std::to_string(layer_id_).c_str())) {
+		if (ImGui::BeginCombo("Layer##Combo",std::to_string(layer_id_).c_str())) {
 			for (int i = 0; i < map_.getTileVec().size(); ++i)
 			{
 				const bool is_selected = (i == layer_id_);
@@ -485,7 +551,7 @@ void EditorState::RenderGUI()
 		//ImGui::NewLine();
 		if(ImGui::Button("add##layer")) {
 			map_.AddLayer();
-			layer_id_ = map_.layer_number();
+			layer_id_++;
 		}
 
 		ImGui::SameLine();
@@ -495,10 +561,20 @@ void EditorState::RenderGUI()
 		}
 		ImGui::Separator();
 
+		ImGui::Text("fixmousepos: x: %d  y: %d", fixmousepos_.x, fixmousepos_.y);
 		ImGui::NewLine();
-		if (ImGui::Button("save map")) {
-			SaveFileDialog();
-		}
+		ImGui::Text("scaler: %d", scaler_);
+		ImGui::NewLine();
+		ImGui::Text("lower_panel: x %d  y %d  w %d  h %d", lower_panel_.x, lower_panel_.y, lower_panel_.w, lower_panel_.h);
+		ImGui::Text("upper_panel: x %d  y %d  w %d  h %d", upper_panel_.x, upper_panel_.y, upper_panel_.w, upper_panel_.h);
+		ImGui::Separator();
+		ImGui::NewLine();
+		ImGui::Text("WindowSize: w %d  h %d", game.GetWindowSize().x, game.GetWindowSize().y);
+
+		// ImGui::NewLine();
+		// if (ImGui::Button("save map")) {
+		// 	SaveFileDialog();
+		// }
 
 		ImGui::End();
 		ImGui::Render();

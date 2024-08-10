@@ -89,7 +89,8 @@ namespace BzlGame {
 		void RenderAtlas();
 		void RenderSelected() const;
 		void RenderMouse();
-		void RenderGUI();
+		void RenderGui_Menubar();
+		void RenderGui();
 
 		void Init()																override;
 		void UnInit()															override;
