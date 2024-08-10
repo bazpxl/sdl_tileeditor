@@ -97,7 +97,7 @@ namespace BzlGame
 	CreateSharedTexture(SDL_Renderer *renderer, const char * const file)
 	{
 		Texture *texture = IMG_LoadTexture(renderer, file);
-		if (!texture) throw std::runtime_error("ERROR: IMG_LoadTexture() \n");// handle error or return nullptr
+		if (texture == nullptr) throw std::runtime_error("ERROR: IMG_LoadTexture() \n");// handle error or return nullptr
 		return {texture, bzDeleter()};
 	}
 
@@ -125,7 +125,7 @@ namespace BzlGame
 	CreateSharedWindow(const char* title, const int x, const int y, const int w, const int h, const Uint32 flags)
 	{
 		Window* window = SDL_CreateWindow(title, x, y, w, h, flags);
-		if(!window) throw std::runtime_error("ERROR: Could not create window.\n");
+		if(window == nullptr) throw std::runtime_error("ERROR: Could not create window.\n");
 		return {window, bzDeleter()};
 	}
 
