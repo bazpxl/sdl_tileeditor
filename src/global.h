@@ -94,12 +94,26 @@ namespace BzlGame
 		void operator()(Texture *p)   const { SDL_DestroyTexture(p);    }
 	};
 
-	/// load asset from path and return as SharedPtr with individual Deleter
+	/// @brief Load Texture from given path and save its size
+	/// @return SharedPtr<Texture> with individual deleter
 	inline SharedPtr<Texture>
-	CreateSharedTexture(SDL_Renderer *renderer, const char * const file)
-	{
-		Texture *texture = IMG_LoadTexture(renderer, file);
-		if (texture == nullptr) throw std::runtime_error("ERROR: IMG_LoadTexture() \n");// handle error or return nullptr
+	CreateSharedTexture(Renderer *render, const char * filepath, Point & size) {
+		SDL_Surface* surface = IMG_Load(filepath);
+		if (!surface) {
+			std::cerr << "Fehler beim Laden des Bildes: " << IMG_GetError() << std::endl;
+			throw std::runtime_error("Creating surface from file failed.");
+		}
+		// save texture size
+		size.x = surface->w;
+		size.y = surface->h;
+
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(render, surface);
+		if (!texture) {
+			std::cerr << "Fehler beim Erstellen der Texture: " << SDL_GetError() << std::endl;
+			SDL_FreeSurface(surface);
+		}
+		SDL_FreeSurface(surface);
+
 		return {texture, bzDeleter()};
 	}
 

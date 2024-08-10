@@ -6,10 +6,10 @@
 #include "examplegame.h"
 using namespace BzlGame;
 
-
 void EditorState::Init()
 {
-	gui_texture_ = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png");
+	Point mousesize;
+	gui_texture_ = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png",mousesize);
 
 	const int ntf_error = OpenFileDialog();
 	if(ntf_error == 1)
@@ -77,18 +77,17 @@ int EditorState::OpenAssetFileDialog()
 
 	if ( result == NFD_OKAY )
 	{
-		SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath);
+		Point assetsize;
+		SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath, assetsize);
 		if(asset_texture == nullptr)
 		{
 			return 1;
 		}
-		Point size;
 
 		const string absolutpath = outPath;
 		const string relativpath = RemovePathBeforeAsset(absolutpath);
 
-		SDL_QueryTexture(asset_texture.get(), nullptr, nullptr, &size.x, &size.y);
-		map_.AddTileset(asset_texture, size, relativpath);
+		map_.AddTileset(asset_texture, assetsize, relativpath);
 		free(outPath);
 
 		return 0;
@@ -187,7 +186,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 								if(multiselect_Items.empty())
 								{
 									const u16 selected_type = static_cast<u16>(pointToInt(singleselect_point, map_.getTilesetSize(tileset_id_).x / map_.tilesize()));
-									const int dst_pos = pointToInt(fixmousepos_, map_.cols());
+									const u16 dst_pos = pointToInt(fixmousepos_, map_.cols());
 									map_.setTile(layer_id_, dst_pos, {selected_type, tileset_id_});
 								}else
 								{

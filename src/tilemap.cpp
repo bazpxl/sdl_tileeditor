@@ -74,9 +74,9 @@ void Map::CreateAssets(const Vector<string>& asset_paths, Renderer* render) {
 	{
 		string tmpstr = BasePath;
 		tmpstr.append(vec);
-		SharedPtr<Texture> texture_shptr = CreateSharedTexture(render, tmpstr.c_str());
 		Point size;
-		SDL_QueryTexture(texture_shptr.get(), nullptr, nullptr, &size.x, &size.y );
+		SharedPtr<Texture> texture_shptr = CreateSharedTexture(render, tmpstr.c_str(), size);
+
 		tilesets_.push_back({texture_shptr , size, vec});
 	}
 }
