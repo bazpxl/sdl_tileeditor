@@ -1,10 +1,7 @@
-//
-// Created by bzl on 27.07.24.
-//
-#include "tilemap.h"
-using namespace BzlGame;
 
+#include "tilemap.h"
 #include <filesystem>
+using namespace BzlGame;
 
 void Map::ReadJson(const string & path, Renderer * render)
 {
