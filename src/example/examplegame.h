@@ -84,6 +84,7 @@ namespace BzlGame {
 
 		void RenderMap();
 		void RenderAtlas();
+		void RenderSelected() const;
 		void RenderMouse();
 		void RenderGUI();
 

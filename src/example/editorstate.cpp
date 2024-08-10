@@ -338,26 +338,33 @@ void EditorState::RenderAtlas()
 			   scaler_, scaler_
 		   };
 			SDL_RenderCopy(render, map_.getTileset(tileset_id_).texture.get(), &srcRect, &dstRect);
-			// check if multi or single selection
-			if(multiselect_Items.empty())
-			{
-				const Rect mouse_srcRect = {0,0,scaler_,scaler_};
-				const Rect dst_rect = {singleselect_point.x * scaler_, singleselect_point.y * scaler_ + lower_panel_.y, scaler_, scaler_};
-				SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &dst_rect );
-			}else
-			{
-				SDL_SetRenderDrawColor(render, 255,255,255,255); // white
-				const Rect dst_rect = {
-					(mselect_rect_.x / scaler_ ) * scaler_,
-					(mselect_rect_.y   / scaler_) * scaler_,
-					((mselect_rect_.w / scaler_) * scaler_ ) + map_.tilesize(),
-					((mselect_rect_.h /scaler_ )* scaler_) + map_.tilesize()
-				};
-				//std::cout << "  x " << dst_rect.x << "  y " << dst_rect.y << "  w " << dst_rect.w << "  h " << dst_rect.h << std::endl;
-				//println("x{} y{} w{} h{}", mselect_rect_.x,mselect_rect_.y,mselect_rect_.w,mselect_rect_.h);
-				SDL_RenderDrawRect(render, &dst_rect);
-			}
+
+
 		}
+	}
+}
+
+void EditorState::RenderSelected() const {
+
+	// single selection
+	if(multiselect_Items.empty())
+	{
+		const Rect mouse_srcRect = {0,0,scaler_,scaler_};
+		const Rect dst_rect = {singleselect_point.x * scaler_, singleselect_point.y * scaler_ + lower_panel_.y, scaler_, scaler_};
+		SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &dst_rect );
+
+	// multi selection
+	}else
+	{
+		SDL_SetRenderDrawColor(render, 255,255,255,255); // white
+		const Rect dst_rect = {
+			(mselect_rect_.x / scaler_ ) * scaler_,
+			(mselect_rect_.y   / scaler_) * scaler_,
+			((mselect_rect_.w / scaler_) * scaler_ ) + map_.tilesize(),
+			((mselect_rect_.h /scaler_ )* scaler_) + map_.tilesize()
+		};
+
+		SDL_RenderDrawRect(render, &dst_rect);
 	}
 }
 
