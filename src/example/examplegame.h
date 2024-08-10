@@ -34,6 +34,8 @@ namespace BzlGame {
 	class EditorState : public GameState
 	{
 	protected:
+
+
 		Vector<MultiSelectItem> multiselect_Items;
 		SharedPtr<Texture> gui_texture_ = nullptr;
 
@@ -57,7 +59,7 @@ namespace BzlGame {
 		u16 scaler_{};
 		u8 zoom_						=	1;
 
-		u8 layer_id_					=	LayerNumb - 1;
+		u8 layer_id_					=	LayerNumber - 1;
 		u8 tileset_id_					=	0;
 
 		bool atlas_open_				=	true;
@@ -77,10 +79,11 @@ namespace BzlGame {
 		void HandleKeyboard(const SDL_Event & event);
 		void MoveCamera(const Direction dir);
 
-		void OpenFileDialog();
-		void SaveFileDialog();
+		int OpenFileDialog();
 
-		void OpenAssetFileDialog();
+		int SaveFileDialog();
+
+		int OpenAssetFileDialog();
 
 		void RenderMap();
 		void RenderAtlas();

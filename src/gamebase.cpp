@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdlrenderer2.h>
 #include <imgui_impl_sdl2.h>
+
 using namespace BzlGame;
 
 Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
@@ -73,7 +74,7 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 	allStates.reserve( 10 );
 	std::ranges::fill(allStates, nullptr );
 
-#ifdef IMGUI
+#ifdef BZ_IMGUI_ACTIVE
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -253,7 +254,7 @@ void Game::OutputPerformanceInfo( const TimePoint current, const Duration needed
 		case PerformanceDrawMode::Title:
 			if( passedTime > 250ms )
 			{
-				const std::string avgms = format( "{}ms", AverageMSecPerFrame() );
+				const std::string avgms = format( "Bazpi {}ms", AverageMSecPerFrame() );
 				SDL_SetWindowTitle( window, avgms.c_str() );
 				ResetPerformanceInfo( current );
 			}
@@ -262,7 +263,7 @@ void Game::OutputPerformanceInfo( const TimePoint current, const Duration needed
 		case PerformanceDrawMode::OStream:
 			if( passedTime > 1000ms )
 			{
-				print( "{}ms", AverageMSecPerFrame() );
+				print( "Bazpi {}ms", AverageMSecPerFrame() );
 				ResetPerformanceInfo( current );
 			}
 			break;

@@ -10,7 +10,15 @@ using namespace BzlGame;
 void EditorState::Init()
 {
 	gui_texture_ = CreateSharedTexture(render, BasePath"asset/graphic/editorGUI.png");
-	OpenFileDialog();
+
+	const int ntf_error = OpenFileDialog();
+	if(ntf_error == 1)
+	{
+		print("NTF ERROR 1");
+		Event next_event = { .type = SDL_QUIT };
+		SDL_PushEvent( &next_event );
+	}
+
 	scaler_ = map_.tilesize() * zoom_;
 }
 
@@ -38,8 +46,9 @@ void EditorState::MoveCamera(const Direction dir)
 	}
 }
 
-
-void EditorState::SaveFileDialog()
+/// @brief Open native file save dialog and save new map or overwrite an existing file
+/// @return 0 for success, 1 for an error, 2 for user cancellation
+int EditorState::SaveFileDialog()
 {
 	nfdchar_t *outPath = nullptr;
 	const nfdresult_t result = NFD_SaveDialog( nullptr, nullptr, &outPath );
@@ -48,15 +57,20 @@ void EditorState::SaveFileDialog()
 		GetRelativePath(string(outPath), string(BasePath));
 		map_.WriteJson(outPath);
 		free(outPath);
-	} else if ( result == NFD_CANCEL ) {
-		DebugOnly(
-			println("Canceled by user.");)
-	} else{
-		DebugOnly(
-		printf("Error: %s\n", NFD_GetError() );	)
+		return 0;
+
 	}
+	if ( result == NFD_CANCEL ) {
+		DebugOnly(		println("Canceled by user.");			)
+		return 2;
+	}
+	DebugOnly(		printf("Error: %s\n", NFD_GetError() );	)
+	return 1;
 }
-void EditorState::OpenAssetFileDialog()
+
+/// @brief Open native file dialog and select asset to load
+/// @return 0 for success, 1 for an error, 2 for user cancellation
+int EditorState::OpenAssetFileDialog()
 {
 	nfdchar_t *outPath = nullptr;
 	const nfdresult_t result = NFD_OpenDialog( nullptr, nullptr, &outPath );
@@ -64,7 +78,10 @@ void EditorState::OpenAssetFileDialog()
 	if ( result == NFD_OKAY )
 	{
 		SharedPtr<Texture> asset_texture = CreateSharedTexture(render, outPath);
-		assert(asset_texture != nullptr);
+		if(asset_texture == nullptr)
+		{
+			return 1;
+		}
 		Point size;
 
 		const string absolutpath = outPath;
@@ -73,36 +90,39 @@ void EditorState::OpenAssetFileDialog()
 		SDL_QueryTexture(asset_texture.get(), nullptr, nullptr, &size.x, &size.y);
 		map_.AddTileset(asset_texture, size, relativpath);
 		free(outPath);
+
+		return 0;
 	}
-	else if ( result == NFD_CANCEL ){
-		DebugOnly(
-		println("Canceled by user. Load standard-map");	)
-		map_ = Map();
-	}else{
-		DebugOnly(
-		println("Error: {}", NFD_GetError() );	)
-	}
+
+	DebugOnly(		println("Canceled by user.");		)
+	return 2;
 }
-void EditorState::OpenFileDialog()
+
+/// @brief Open native file dialog and select map.json to load
+/// @return 0 for success, 1 for an error, 2 for user cancellation
+int EditorState::OpenFileDialog()
 {
 	nfdchar_t *outPath = nullptr;
 	const nfdresult_t result = NFD_OpenDialog( nullptr, nullptr, &outPath );
+
+	// Load Map from JSON
 	if ( result == NFD_OKAY )
 	{
 		Vector<string> asset_paths = map_.ReadJson(outPath);
 		map_.CreateAssets(asset_paths, render);
+
 		free(outPath);
-	}
-	else if ( result == NFD_CANCEL )
+		return 0;
+	} // create empty map
+	if ( result == NFD_CANCEL )
 	{
-		DebugOnly(
-		println("Canceled by user. Load standard-map");	)
+		DebugOnly(		println("Canceled by user. Load standard-map");		)
 		map_ = Map();
+		return 2;
 	}
-	else{
-		DebugOnly(
-		println("Error: {}", NFD_GetError() );	)
-	}
+	// Quit if not cancel OR okay
+		DebugOnly(		println("Error: {}", NFD_GetError() );				)
+		return 1;
 }
 
 void EditorState::Events( const u32 frame, const u32 totalMSec, const float deltaT )
@@ -112,7 +132,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 	Event event;
 	while( SDL_PollEvent( &event ) )
 	{
-#ifdef IMGUI
+#ifdef BZ_IMGUI_ACTIVE
 		const ImGuiIO & io = ImGui::GetIO();
 		ImGui_ImplSDL2_ProcessEvent(&event); // Pass events to ImGui
 		if( io.WantCaptureKeyboard ){	continue;	}
@@ -234,9 +254,9 @@ string EditorState::GetRelativePath(const std::string &absolutePath, const std::
 
 	// check if projPath is absolut
 	if (!projPath.is_absolute()) {
-		projPath = fs::absolute(projPath);
+		projPath = absolute(projPath);
 	}
-	const fs::path relPath = fs::relative(absPath, projPath);
+	const fs::path relPath = relative(absPath, projPath);
 	return relPath.string();
 }
 
@@ -318,13 +338,12 @@ void EditorState::RenderMap() {
 	}
 }
 
-void EditorState::RenderAtlas()
-{
-
+void EditorState::RenderAtlas(){
 	if(!map_.getTilesets().empty()){
 		const int tileNumb = (map_.getTilesetSize(tileset_id_).x * map_.getTilesetSize(tileset_id_).y )/ map_.tilesize();
 		for(int i = 0; i < tileNumb; i++)
 		{
+
 			const Point relative_pos = intToPoint(i , map_.getTilesetSize(tileset_id_).x / map_.tilesize());
 			const Rect srcRect =
 			{
@@ -342,6 +361,7 @@ void EditorState::RenderAtlas()
 
 
 		}
+		RenderSelected();
 	}
 }
 
@@ -371,7 +391,7 @@ void EditorState::RenderSelected() const {
 
 void EditorState::RenderMouse() {
 
-	if(leftclick_modctrl_ && isAtlasVisible())
+	if(leftclick_modctrl_ && isAtlasVisible())[[unlikely]]
 	{
 		// save the start coordinates of the mouse at the buttondown event and the end coordinates when the button is released.
 		// depending on whether the rectangle is dragged upwards or downwards, start x/y or end x/y becomes the origin of the rectangle.
@@ -397,7 +417,7 @@ void EditorState::RenderMouse() {
 
 void EditorState::RenderGUI()
 {
-#ifdef IMGUI
+#ifdef BZ_IMGUI_ACTIVE
 	constexpr int MaxSize = WindowSize.y;
 	constexpr int MinSize = 0;
 
@@ -410,7 +430,7 @@ void EditorState::RenderGUI()
 	if(game.imgui_window_active)
 	{
 		if (ImGui::BeginListBox("Tilesets##setlistbox")) {
-			for (int i = 0; i < map_.getTilesets().size(); ++i)
+			for (size_t i = 0; i < map_.getTilesets().size(); ++i)
 			{
 				const bool is_selected = (i == tileset_id_); // Beispiel: markiere das erste Element
 				if (ImGui::Selectable(std::to_string(i).c_str(), is_selected))
@@ -449,6 +469,7 @@ void EditorState::RenderGUI()
 		scaler_ = zoom_ * map_.tilesize();
 
 		ImGui::NewLine();
+		ImGui::Separator();
 
 		if (ImGui::BeginCombo("Layer",std::to_string(layer_id_).c_str())) {
 			for (int i = 0; i < map_.getTileVec().size(); ++i)

@@ -33,7 +33,7 @@
 #include <SDL_mixer.h>
 #include <nlohmann/json_fwd.hpp>
 
-#define IMGUI true
+#define BZ_IMGUI_ACTIVE true
 
 namespace BzlGame
 {
@@ -86,7 +86,7 @@ namespace BzlGame
 
 	constexpr Point WindowSize	=  {	1920, 1080	};
 	constexpr u16 EmptyTileVal	=	65535;
-	constexpr u8 LayerNumb		=	3;
+	constexpr u8 LayerNumber		=	3;
 
 	struct bzDeleter{
 		void operator()(Window *p)    const { SDL_DestroyWindow(p);    }

@@ -25,7 +25,7 @@ namespace BzlGame{
 		bool isRunning = true;
 
 	public:
-#ifdef IMGUI
+#ifdef BZ_IMGUI_ACTIVE
 		bool imgui_window_active = true;
 #endif
 
@@ -51,7 +51,6 @@ namespace BzlGame{
 
 	protected:
 		virtual void ActivateNextState();
-
 
 		/// Performance
 	public:

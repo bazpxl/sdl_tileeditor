@@ -5,7 +5,7 @@
 using namespace BzlGame;
 
 ExampleGame::ExampleGame()
-	: Game( "BZ_tilemap_editor", WindowSize, true )
+	: Game( "Bazpi", WindowSize, true )
 {
 	// Will be freed in Game dtor
 	allStates = {
@@ -18,11 +18,9 @@ ExampleGame::ExampleGame()
 	SetPerfDrawMode(PerformanceDrawMode::Title);
 }
 
-
-
 bool ExampleGame::HandleEvent( const Event event )
 {
-#ifdef IMGUI
+#ifdef BZ_IMGUI_ACTIVE
 	const ImGuiIO & io = ImGui::GetIO();
 	if( io.WantCaptureKeyboard ){	return true;	}
 #endif
