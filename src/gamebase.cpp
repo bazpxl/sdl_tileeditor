@@ -41,7 +41,7 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 		exit( 5 );
 	}
 
-	constexpr SDL_WindowFlags flags = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
+	constexpr SDL_WindowFlags flags = (SDL_WindowFlags)(SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
 	window = SDL_CreateWindow(
 		windowTitle,
@@ -80,6 +80,7 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
+
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsLight();
@@ -140,6 +141,7 @@ bool Game::HandleEvent( const Event event )
 			}
 			break;
 		}
+
 		default:
 			break;
 	}
