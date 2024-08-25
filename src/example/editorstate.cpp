@@ -1,8 +1,9 @@
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
-#include <imgui_impl_sdlrenderer2.h>
+
 #include <nlohmann/json.hpp>
 
+#include "GUI.h"
 #include "examplegame.h"
 using namespace BzlGame;
 
@@ -19,6 +20,8 @@ void EditorState::Init()
 	}
 
 	scaler_ = map_.tilesize() * zoom_;
+	gui_ = std::make_unique<GUI>(&map_, this);
+
 }
 
 void EditorState::UnInit(){}
@@ -106,7 +109,7 @@ int EditorState::OpenFileDialog()
 	if ( result == NFD_OKAY )
 	{
 		Vector<string> asset_paths = map_.ReadJson(outPath);
-		map_.CreateAssets(asset_paths, render);
+		map_.LoadAllAssets(asset_paths, render);
 
 		free(outPath);
 		return 0;
@@ -117,8 +120,6 @@ int EditorState::OpenFileDialog()
 		map_ = Map();
 		return 2;
 	}
-	// Quit if not cancel OR okay
-		DebugOnly(		println("Error: {}", NFD_GetError() );				)
 		return 1;
 }
 
@@ -148,11 +149,11 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 					// Aktualisiere die WindowSize-Variable
 					Point windowSize;
 					SDL_GetWindowSize(game.GetWindow(), &windowSize.x, &windowSize.y);
-					lower_panel_.w = windowSize.x;
-					upper_panel_.w = windowSize.x;
-					upper_panel_.h = windowSize.y / 2;
-					lower_panel_.h = windowSize.y - upper_panel_.h;
-					lower_panel_.y = upper_panel_.h;
+					panel.lower.w = windowSize.x;
+					panel.upper.w = windowSize.x;
+					panel.upper.h = windowSize.y / 2;
+					panel.lower.h = windowSize.y - panel.upper.h;
+					panel.lower.y = panel.upper.h;
 
 				}
 				break;
@@ -164,14 +165,21 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 				}
 			case SDL_MOUSEMOTION:
 				{
+					if(drag_cam_) {
+						SDL_Point currentMousePos = {event.motion.x, event.motion.y};
+						camera_.x += currentMousePos.x - camera_startpos.x;
+						camera_.y += currentMousePos.y - camera_startpos.y;
+						camera_startpos = currentMousePos;
+					}
+
 					if(leftclick_modctrl_)
 					{
 						mselect_endp_.x = event.motion.x;
 						mselect_endp_.y = event.motion.y;
 					}
 					/// Update current mouse position
-					fixmousepos_.x  = event.motion.x / scaler_;
-					fixmousepos_.y  = event.motion.y / scaler_;
+					grid_mousepos.x  = event.motion.x / scaler_;
+					grid_mousepos.y  = event.motion.y / scaler_;
 					break;
 				}
 			case SDL_MOUSEBUTTONDOWN:
@@ -179,7 +187,7 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 					if(event.button.button == SDL_BUTTON_LEFT)
 					{
 						// if mouse is inside LowerPanel, select tile on current mouse pos
-						if((fixmousepos_.y * scaler_  >= lower_panel_.y)	&&	isAtlasVisible())
+						if( !isMouseOnMap()	&&	isAtlasVisible())
 							{
 								// check if ctrl is pressed for multiselect-start
 								const Uint8* keystate = SDL_GetKeyboardState(nullptr);
@@ -188,43 +196,47 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 									leftclick_modctrl_ = true;
 									mselect_startp_ = {event.button.x, event.button.y};
 								}else{
-									singleselect_point.x = fixmousepos_.x;
-									singleselect_point.y = fixmousepos_.y - lower_panel_.y / scaler_;
+									singleselect_point.x = grid_mousepos.x;
+									singleselect_point.y = grid_mousepos.y - panel.lower.y / scaler_;
 									multiselect_Items.clear();
 								}
+								break;
 							}
 						// if mouse is NOT in LowerPanel, place last Selected Tile on current Position.
-						if((fixmousepos_.y * scaler_ < lower_panel_.y)	||	!isAtlasVisible()	)
+						if( isMouseOnMap()	||	!isAtlasVisible()	)
+						{
+							if(multiselect_Items.empty())
 							{
-								if(multiselect_Items.empty())
-								{
 									const u16 selected_type = static_cast<u16>(pointToInt(singleselect_point, map_.getTilesetSize(tileset_id_).x / map_.tilesize()));
-									const u16 dst_pos = pointToInt(fixmousepos_, map_.cols());
+									const u16 dst_pos = pointToInt(grid_mousepos, map_.cols());
 									map_.setTile(layer_id_, dst_pos, {selected_type, tileset_id_});
-								}else
+							}else
+							{
+								for(const auto & multiItem : multiselect_Items)
 								{
-									for(const auto & multiItem : multiselect_Items)
-									{
-										const u16 selected_type = static_cast<u16>(pointToInt(multiItem.tileset_pos, map_.getTilesetSize(tileset_id_).x / map_.tilesize()));
-										const Point pos = {fixmousepos_.x + multiItem.offset.x, fixmousepos_.y + multiItem.offset.y};
-										const int dst_pos = pointToInt(pos, map_.cols());
-										map_.setTile(layer_id_, dst_pos, {selected_type, tileset_id_});
-									}
+									const u16 selected_type = static_cast<u16>(pointToInt(multiItem.tileset_pos, map_.getTilesetSize(tileset_id_).x / map_.tilesize()));
+									const Point pos = {grid_mousepos.x + multiItem.offset.x, grid_mousepos.y + multiItem.offset.y};
+									const int dst_pos = pointToInt(pos, map_.cols());
+									map_.setTile(layer_id_, dst_pos, {selected_type, tileset_id_});
 								}
 							}
+							break;
+						}
 					}else if(event.button.button == SDL_BUTTON_RIGHT)
 					{
-						// if mouse is within the map, use right click on a tile to replace it with EmptyTileVal.
-						if(	isMouseOnMap() || !isAtlasVisible()	)
+						if(isMouseOnMap() && (SDL_GetModState() & KMOD_LALT))
 						{
-							const int dst_pos = pointToInt(fixmousepos_, map_.cols());
-							map_.setTile(layer_id_, dst_pos, {EmptyTileVal, tileset_id_});
-							// if
-						}else if(!isMouseOnMap() || isAtlasVisible())
-						{
-							rightclick_ = true;
+							drag_cam_ = true;
 							camera_startpos.x = event.button.x;
 							camera_startpos.y = event.button.y;
+						}else
+						{
+							// if mouse is within the map, use right-click on a tile to replace it with EmptyTileVal.
+							if(	isMouseOnMap()	)
+							{
+								const int dst_pos = pointToInt(grid_mousepos, map_.cols());
+								map_.setTile(layer_id_, dst_pos, {EmptyTileVal, tileset_id_});
+							}
 						}
 					}
 					break;
@@ -232,12 +244,13 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 			case SDL_MOUSEBUTTONUP:
 				if(event.button.button == SDL_BUTTON_LEFT)
 				{
-					if(event.button.y > lower_panel_.y && leftclick_modctrl_){
+					if(event.button.y > panel.lower.y && leftclick_modctrl_)
+					{
 						// Set square to tileset coords
 						const int startX = mselect_startp_.x / scaler_;
-						const int startY = (mselect_startp_.y - lower_panel_.y) / scaler_;
+						const int startY = (mselect_startp_.y - panel.lower.y) / scaler_;
 						const int endX   = mselect_endp_.x / scaler_;
-						const int endY   = (mselect_endp_.y - lower_panel_.y) / scaler_;
+						const int endY   = (mselect_endp_.y - panel.lower.y) / scaler_;
 
 						multiselect_Items.clear();
 						for (int x = std::min(startX, endX); x <= std::max(startX, endX); ++x)
@@ -249,9 +262,14 @@ void EditorState::Events( const u32 frame, const u32 totalMSec, const float delt
 								multiselect_Items.push_back({tileset_pos, offset});
 							}
 						}
-						//println("");
 						leftclick_modctrl_ = false;
 					}
+					break;
+				}
+				if(event.button.button == SDL_BUTTON_RIGHT && drag_cam_)
+				{
+					drag_cam_ = false;
+					break;
 				}
 			default:
 				break;
@@ -286,10 +304,10 @@ void EditorState::HandleKeyboard(const SDL_Event & event)
 	else if( what_key.scancode == SDL_SCANCODE_F2 && event.key.repeat == 0){
 		if(isAtlasVisible())
 		{
-			atlas_open_ = false;
+			atlasEnabled = false;
 		}else
 		{
-			atlas_open_ = true;
+			atlasEnabled = true;
 		}
 	}else if( what_key.scancode == SDL_SCANCODE_ESCAPE && event.key.repeat == 0){
 		game.SetNextState( 0 );
@@ -305,7 +323,7 @@ void EditorState::Render( const u32 frame, const u32 totalMSec, const float delt
 		RenderAtlas();
 	}
 	RenderMouse();
-	RenderGui();
+	gui_->RenderAll();
 }
 
 void EditorState::RenderMap() {
@@ -337,7 +355,7 @@ void EditorState::RenderMap() {
 				// check if atlas panel is activated, if true, check for lower_panel rendering border
 				if(isAtlasVisible())
 				{
-					if(dstRect.y+map_.tilesize() <= lower_panel_.y)
+					if(dstRect.y+map_.tilesize() <= panel.lower.y)
 					{
 						SDL_RenderCopy(render, map_.getTileset(lay[tile].asset_id).texture.get(), &srcRect, &dstRect);
 					}
@@ -353,7 +371,7 @@ void EditorState::RenderMap() {
 void EditorState::RenderAtlas(){
 	if(!map_.getTilesets().empty()){
 		SDL_SetRenderDrawColor(render, 100, 100, 100, 255);
-		SDL_RenderFillRect(render, &lower_panel_);
+		SDL_RenderFillRect(render, &panel.lower);
 
 		const int tile_number = (map_.getTilesetSize(tileset_id_).x * map_.getTilesetSize(tileset_id_).y )/ map_.tilesize();
 		for(int i = 0; i < tile_number; i++)
@@ -369,7 +387,7 @@ void EditorState::RenderAtlas(){
 			const Rect dstRect =
 			{
 				relative_pos.x * scaler_,
-			   lower_panel_.y + relative_pos.y * scaler_,
+			   panel.lower.y + relative_pos.y * scaler_,
 			   scaler_, scaler_
 		   };
 			SDL_RenderCopy(render, map_.getTileset(tileset_id_).texture.get(), &srcRect, &dstRect);
@@ -386,7 +404,7 @@ void EditorState::RenderSelected() const {
 	if(multiselect_Items.empty())
 	{
 		const Rect mouse_srcRect = {0,0,scaler_,scaler_};
-		const Rect dst_rect = {singleselect_point.x * scaler_, singleselect_point.y * scaler_ + lower_panel_.y, scaler_, scaler_};
+		const Rect dst_rect = {singleselect_point.x * scaler_, singleselect_point.y * scaler_ + panel.lower.y, scaler_, scaler_};
 		SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &dst_rect );
 
 	// multi selection
@@ -422,168 +440,14 @@ void EditorState::RenderMouse() {
 		const Rect mouse_srcRect =	{0, 0, scaler_, scaler_	};
 		const Rect mouse_dstRect =
 		{
-			fixmousepos_.x * scaler_,
-			fixmousepos_.y * scaler_,
+			grid_mousepos.x * scaler_,
+			grid_mousepos.y * scaler_,
 			scaler_, scaler_
 		};
 		SDL_RenderCopy(render, gui_texture_.get(), &mouse_srcRect, &mouse_dstRect);
 	}
 }
 
-void EditorState::RenderGui_Menubar() {
-	if(ImGui::BeginMenuBar()) {
-		if (ImGui::BeginMenu("File"))
-		{
-			if(ImGui::MenuItem("Open.."))
-			{
-				map_.ClearMap();
-				const int ntf_error = OpenFileDialog();
-				if(ntf_error == 1)
-				{
-					print("NTF ERROR 1");
-					Event next_event = { .type = SDL_QUIT };
-					SDL_PushEvent( &next_event );
-				}
-			}
-
-			if(ImGui::MenuItem("Save")) {
-				const int ntf_error = SaveFileDialog();
-				if(ntf_error == 1)
-				{
-					print("NTF ERROR 1");
-					Event next_event = { .type = SDL_QUIT };
-					SDL_PushEvent( &next_event );
-				}
-			}
-			// if(ImGui::MenuItem("Save"))
-			// {
-			//
-			// }
-			ImGui::EndMenu();
-		}
-		ImGui::EndMenuBar();
-	}
-}
-
-void EditorState::RenderGui()
-{
-#ifdef BZ_IMGUI_ACTIVE
-	int MaxSize = game.GetWindowSize().y;
-	constexpr int MinSize = 0;
-
-	ImGuiWindowFlags windowFlags = 0;
-	windowFlags |= ImGuiWindowFlags_NoTitleBar;
-	windowFlags |= ImGuiWindowFlags_MenuBar;
-	//windowFlags |= ImGuiWindowFlags_NoCollapse;
-
-	ImGui_ImplSDLRenderer2_NewFrame();
-	ImGui_ImplSDL2_NewFrame();
-	ImGui::NewFrame();
-	//ImGui::ShowDemoWindow();
-	//ImGui::ShowUserGuide();
-	ImGui::Begin("bazpi tools", &game.imgui_window_active, windowFlags);
-
-	if(game.imgui_window_active)
-	{
-		RenderGui_Menubar();
-
-		if (ImGui::BeginListBox("Tilesets##setlistbox")) {
-			for (size_t i = 0; i < map_.getTilesets().size(); ++i)
-			{
-				const bool is_selected = (i == tileset_id_); // Beispiel: markiere das erste Element
-				if (ImGui::Selectable(std::to_string(i).c_str(), is_selected))
-				{
-					tileset_id_ = i;
-				}
-
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();
-			}
-			ImGui::EndListBox();
-		}
-
-		ImGui::NewLine();
-		if(ImGui::Button("add##tileset")) {
-			OpenAssetFileDialog();
-		};
-		ImGui::SameLine();
-		if(ImGui::Button("delete##tileset")) {
-			map_.RemoveTileset(layer_id_);
-		}
-
-		ImGui::Separator();
-
-		// atlas panel slider
-		ImGui::SliderInt("Atlas height##slider", &upper_panel_.h, MinSize, MaxSize);
-
-		lower_panel_.y = (upper_panel_.h / scaler_) * scaler_;
-		lower_panel_.h = game.GetWindowSize().y - lower_panel_.y;
-		//
-		// // adjust upper panel height dependent on current lower_panel height
-		// upper_panel_.h = game.GetWindowSize().y - lower_panel_.h;
-		// // set lower_panel.y position dependent on new upper_panel height
-		// lower_panel_.y = upper_panel_.h;
-
-		ImGui::Checkbox("show/hide##atlas", &atlas_open_);
-		ImGui::NewLine();
-
-		// scaling slider
-		int slider_zoom = zoom_;
-		ImGui::SliderInt("Render scale##slider", &slider_zoom, 1, 3);
-		zoom_ = static_cast<u8>(slider_zoom);
-		scaler_ = zoom_ * map_.tilesize();
-
-		ImGui::NewLine();
-		ImGui::Separator();
-
-		if (ImGui::BeginCombo("Layer##Combo",std::to_string(layer_id_).c_str())) {
-			for (int i = 0; i < map_.getTileVec().size(); ++i)
-			{
-				const bool is_selected = (i == layer_id_);
-				if (ImGui::Selectable(std::to_string(i).c_str(), is_selected))
-				{
-					layer_id_ = i;
-				}
-			}
-			ImGui::EndCombo();
-		}
-
-		//ImGui::NewLine();
-		if(ImGui::Button("add##layer")) {
-			map_.AddLayer();
-			layer_id_++;
-		}
-
-		ImGui::SameLine();
-		if(ImGui::Button("delete##layer" )) {
-			map_.RemoveLayer(layer_id_);
-			layer_id_ = 0;
-		}
-		ImGui::Separator();
-
-		ImGui::Text("fixmousepos: x: %d  y: %d", fixmousepos_.x, fixmousepos_.y);
-		ImGui::NewLine();
-		ImGui::Text("scaler: %d", scaler_);
-		ImGui::NewLine();
-		ImGui::Text("lower_panel: x %d  y %d  w %d  h %d", lower_panel_.x, lower_panel_.y, lower_panel_.w, lower_panel_.h);
-		ImGui::Text("upper_panel: x %d  y %d  w %d  h %d", upper_panel_.x, upper_panel_.y, upper_panel_.w, upper_panel_.h);
-		ImGui::Separator();
-		ImGui::NewLine();
-		ImGui::Text("WindowSize: w %d  h %d", game.GetWindowSize().x, game.GetWindowSize().y);
-
-		// ImGui::NewLine();
-		// if (ImGui::Button("save map")) {
-		// 	SaveFileDialog();
-		// }
-
-		ImGui::End();
-		ImGui::Render();
-		SDL_SetRenderDrawColor(render, static_cast <u8>(0.45f * 255), static_cast <u8>(0.55f * 255), static_cast <u8>(0.60f * 255), static_cast <u8>(1.00f * 255));
-
-		ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
-	}
-#endif
-}
 
 
 string EditorState::RemovePathBeforeAsset(const string &filepath) {

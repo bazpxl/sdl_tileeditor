@@ -82,9 +82,11 @@ Game::Game( const char * windowTitle, const Point windowSize, const bool vSync )
 	io.ConfigFlags |= ImGuiConfigFlags_NavNoCaptureKeyboard;
 
 
+
 	// Setup Dear ImGui style
 	ImGui::StyleColorsLight();
-
+	// set font size
+	ImGui::GetIO().FontGlobalScale = 1.2f;
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForSDLRenderer(window, render);
 	ImGui_ImplSDLRenderer2_Init(render);

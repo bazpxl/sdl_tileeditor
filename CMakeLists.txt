@@ -115,8 +115,17 @@ if( USE_OpenMP )
     find_package( OpenMP )
 endif()
 
+
+
 if( MSVC )
+
     add_compile_options( /W4 /wd4100 /we4456 )
+    # Setze allgemeine Compiler-Optionen
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /GL /MD /Ot /Ob2 /arch:AVX2")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /O2 /GL /MD /Ot /Ob2 /arch:AVX2")
+
+    # Setze Linker-Optionen
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG /INCREMENTAL:NO")
 else()
     # needs to be before all the -Wno-*
     set( CMAKE_C_FLAGS           "${CMAKE_C_FLAGS}           -Wall -Wextra" )
@@ -165,6 +174,8 @@ add_executable( sdl_tileeditor
         src/example/editorstate.cpp
         src/tilemap.h
         src/tilemap.cpp
+        src/example/GUI.cpp
+        src/example/GUI.h
 )
 
 

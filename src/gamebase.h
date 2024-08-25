@@ -25,14 +25,13 @@ namespace BzlGame{
 		bool isRunning = true;
 
 	public:
-#ifdef BZ_IMGUI_ACTIVE
-		bool imgui_window_active = true;
-#endif
 
-		[[nodiscard]]       bool    IsRunning()     const { return isRunning;   }
-		[[nodiscard]]       Point & GetWindowSize()       { return windowSize;  }
-		[[nodiscard]] const Point & GetWindowSize() const { return windowSize;  }
-		[[nodiscard]]		Window* GetWindow() const { return window;		}
+
+		[[nodiscard]]       bool    IsRunning()     const	{ return isRunning;   }
+		[[nodiscard]]       Point & GetWindowSize()			{ return windowSize;  }
+		[[nodiscard]] const Point & GetWindowSize() const	{ return windowSize;  }
+		[[nodiscard]]		Window* GetWindow() const		{ return window;		}
+		[[nodiscard]]		Renderer* GetRenderer()			{ return render;		}
 
 		explicit Game(
 			const char * windowTitle = "SDL Game",

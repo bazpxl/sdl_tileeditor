@@ -1,6 +1,8 @@
 #ifndef TILEMAP_H
 #define TILEMAP_H
 
+#include <cassert>
+
 #include "global.h"
 #include "nlohmann/json.hpp"
 
@@ -22,8 +24,8 @@ struct TileSet
 
 /// generate with these macro inline serialization function, to and from JSON for Tile
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tile, type, asset_id)
-inline int pointToInt(const Point r, const int xMax ) { return r.x + r.y * xMax; }
-inline Point intToPoint(const int s, const int xMax ) { return { s % xMax, s / xMax }; }
+inline u16 pointToInt(const Point r, const u16 xMax ) { return r.x + r.y * xMax; }
+inline Point intToPoint(const int s, const u16 xMax ) { return { s % xMax, s / xMax }; }
 
 class Map
 {
@@ -60,9 +62,9 @@ public:
 		: rows_(MapRows), cols_(MapCols),
 		  tilesize_(TileSize), layer_number_(LayerNumber)
 	{
-		tiles_ =	{static_cast <size_t>(layer_number_)-1, Vector<Tile>(rows_*cols_,{EmptyTileVal,0})};
-		Vector<string> asset_paths = ReadJson(path);
-		CreateAssets(asset_paths, render);
+		tiles_ = {static_cast<size_t>(layer_number_) - 1, Vector<Tile>(rows_ * cols_, {EmptyTileVal, 0})};
+		const Vector<string> asset_paths = ReadJson(path);
+		LoadAllAssets(asset_paths, render);
 	}
 
 	void AddTileset(const SharedPtr<Texture> & texture,const Point size, const string& path){	tilesets_.push_back({texture, size, path});	}
@@ -73,6 +75,11 @@ public:
 		tilesets_.erase(tilesets_.begin() + id);
 	}
 
+	void ClearMap() {
+		tiles_.clear();
+		tilesets_.clear();
+	}
+
 	void setTile(const u8 layer, const u16 id, const Tile tile);
 
 	void AddLayer();
@@ -81,7 +88,7 @@ public:
 	Vector<string> ReadJson(const string & path);
 	void WriteJson(const string & path);
 
-	void CreateAssets(const Vector<string>& asset_paths, Renderer* render);
+	void LoadAllAssets(const Vector<string>& asset_paths, Renderer* render);
 
 	[[nodiscard]] Vector<Tile>			&			getLayer(const int index)			 {	return tiles_.at(index);	}
 	[[nodiscard]] Vector<Vector<Tile>>	&			getTileVec()						 {	return tiles_;				}

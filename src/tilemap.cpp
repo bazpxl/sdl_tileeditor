@@ -69,7 +69,7 @@ void Map::WriteJson(const string & path)
 	file.close();
 }
 
-void Map::CreateAssets(const Vector<string>& asset_paths, Renderer* render) {
+void Map::LoadAllAssets(const Vector<string>& asset_paths, Renderer* render) {
 	for(auto & vec : asset_paths)
 	{
 		string tmpstr = BasePath;
