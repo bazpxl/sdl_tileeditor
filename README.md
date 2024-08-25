@@ -1,4 +1,4 @@
-# Bazpi
+# Bazpi Tile-Editor
 
 simple tile editor for 2D-games based on sdl_basegame from [SDL_Basegame](https://github.com/sor/sdl_basegame).
 
